@@ -1,0 +1,42 @@
+<config_plugin>
+    <config>
+        <!-- which workflow template shall be used -->
+        <template>*</template>
+        <!-- publication type to create -->
+        <publicationType>Monograph</publicationType>
+        <!-- which digital collection to use -->
+        <collection>DefaultCollection</collection>
+        <!-- ignore the first row in the Excel sheet -->
+        <ignoreFirstLine>true</ignoreFirstLine>
+        <!-- which columns shall be mapped to which process property and to which ugh metadata -->
+        <metadata
+            ugh="CatalogIDDigital"
+            name="PPN"
+            column="1" />
+        <metadata
+            ugh="TitleDocMain"
+            name="Title"
+            column="2" />
+        <metadata
+            ugh="PlaceOfPublication"
+            name="Ort"
+            identifier="7"
+            column="3" />
+        <metadata
+            ugh="PublicationYear"
+            column="4" />
+        <person ugh="Author">
+            <firstname>5</firstname>
+            <lastname>6</lastname>
+            <identifier>7</identifier>
+        </person>
+        <group ugh="title">
+            <metadata
+                ugh="NonSortTitle"
+                column="9" />
+            <metadata
+                ugh="SortingTitle"
+                column="9" />
+        </group>
+    </config>
+</config_plugin>
