@@ -22,6 +22,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.goobi.beans.Processproperty;
 import org.goobi.production.enums.ImportReturnValue;
 import org.goobi.production.enums.ImportType;
@@ -265,12 +266,13 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
             while (rowIterator.hasNext()) {
                 Map<Integer, String> map = new HashMap<>();
                 Row row = rowIterator.next();
-                Iterator<Cell> cellIterator = row.cellIterator();
-                Integer i = 1;
-                while (cellIterator.hasNext()) {
-                    Cell cell = cellIterator.next();
-
-                    String value = null;
+                int lastColumn = row.getLastCellNum();
+                for (int cn = 0; cn < lastColumn; cn++) {
+                    Integer i = 1;
+                    //                while (cellIterator.hasNext()) {
+                    //                    Cell cell = cellIterator.next();
+                    Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    String value = "";
                     switch (cell.getCellTypeEnum()) {
                         case BOOLEAN:
                             value = cell.getBooleanCellValue() ? "true" : "false";
@@ -279,7 +281,7 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
                             value = cell.getCellFormula();
                             break;
                         case NUMERIC:
-                            value = String.valueOf((int)cell.getNumericCellValue());
+                            value = String.valueOf((int) cell.getNumericCellValue());
                             break;
                         case STRING:
                             value = cell.getStringCellValue();
@@ -390,10 +392,11 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
      * Loads the configuration for the selected template or the default configuration, if the template was not specified.
      * 
      * The configuration is stored in a {@link Config} object
+     * 
      * @param workflowTitle
      * @return
      */
-    
+
     private Config loadConfig(String workflowTitle) {
         XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(this);
         xmlConfig.setExpressionEngine(new XPathExpressionEngine());
