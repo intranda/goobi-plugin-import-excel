@@ -33,14 +33,9 @@
             <lastname>6</lastname>
             <identifier>7</identifier>
         </person>
-        <group ugh="title">
-            <metadata
-                ugh="NonSortTitle"
-                column="2" />
-            <metadata
-                ugh="SortingTitle"
-                column="2" />
-        </group>
+         <metadata
+            ugh="TitleDocMain"
+            column="2" />
         <metadata
             ugh="DocLanguage"
             column="10" />

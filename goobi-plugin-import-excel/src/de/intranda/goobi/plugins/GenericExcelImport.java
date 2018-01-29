@@ -135,7 +135,6 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
 
                 // create importobject for massimport
                 io.setProcessTitle(record.getId());
-                io.setMetsFilename(fileName);
                 io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
                 Object tempObject = record.getObject();
@@ -163,6 +162,7 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
 
                         if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital")) {
                             fileName = getImportFolder() + File.separator + value + ".xml";
+                            io.setProcessTitle(value);
                             io.setMetsFilename(fileName);
                         }
                     }
@@ -267,8 +267,8 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
                 Map<Integer, String> map = new HashMap<>();
                 Row row = rowIterator.next();
                 int lastColumn = row.getLastCellNum();
+                Integer i = 1;
                 for (int cn = 0; cn < lastColumn; cn++) {
-                    Integer i = 1;
                     //                while (cellIterator.hasNext()) {
                     //                    Cell cell = cellIterator.next();
                     Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
