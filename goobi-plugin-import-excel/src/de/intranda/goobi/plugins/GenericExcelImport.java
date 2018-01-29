@@ -62,7 +62,7 @@ import ugh.fileformats.mets.MetsMods;
 @Log4j
 @Data
 @PluginImplementation
-public class GenericExcelImport implements IImportPlugin, IPlugin {
+public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private Prefs prefs;
     private Record data;
@@ -267,6 +267,9 @@ public class GenericExcelImport implements IImportPlugin, IPlugin {
                 Map<Integer, String> map = new HashMap<>();
                 Row row = rowIterator.next();
                 int lastColumn = row.getLastCellNum();
+                if (lastColumn == -1) {
+                    continue;
+                }
                 Integer i = 1;
                 for (int cn = 0; cn < lastColumn; cn++) {
                     //                while (cellIterator.hasNext()) {
