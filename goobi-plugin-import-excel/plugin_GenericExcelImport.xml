@@ -5,26 +5,29 @@
         <!-- publication type to create -->
         <publicationType>Monograph</publicationType>
         <!-- which digital collection to use -->
-        <collection>DefaultCollection</collection>
+        <collection>archive#100uaghgw#040volkskundearchivk#040#</collection>
         <!-- ignore the first row in the Excel sheet -->
         <ignoreFirstLine>true</ignoreFirstLine>
-        <!-- which columns shall be mapped to which process property and to which ugh metadata -->
+        <!-- which columns shall be mapped to which process property and to which ugh metadata
+        column: defines the column number. The first column is 1
+        ugh: name of the metadata to use
+        name: name of the property - if its missing or empty no property gets generated
+        identifier: column where the gnd data is stored
+         -->
         <metadata
             ugh="CatalogIDDigital"
-            name="PPN"
             column="1" />
         <metadata
-            ugh="TitleDocMain"
-            name="Title"
-            column="2" />
+            ugh="CatalogIDSource"
+            column="9" />
         <metadata
             ugh="PlaceOfPublication"
             name="Ort"
-            identifier="7"
+            identifier="4"
             column="3" />
         <metadata
             ugh="PublicationYear"
-            column="4" />
+            column="8" />
         <person ugh="Author">
             <firstname>5</firstname>
             <lastname>6</lastname>
@@ -33,10 +36,13 @@
         <group ugh="title">
             <metadata
                 ugh="NonSortTitle"
-                column="9" />
+                column="2" />
             <metadata
                 ugh="SortingTitle"
-                column="9" />
+                column="2" />
         </group>
+        <metadata
+            ugh="DocLanguage"
+            column="10" />
     </config>
 </config_plugin>
