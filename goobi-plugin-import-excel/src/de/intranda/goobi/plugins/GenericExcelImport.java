@@ -233,6 +233,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 ff.write(fileName);
             } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
+                io.setErrorMessage(e.getMessage());
             }
             answer.add(io);
         }
