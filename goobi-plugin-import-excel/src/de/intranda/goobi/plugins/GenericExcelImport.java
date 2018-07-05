@@ -247,7 +247,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         if (StringUtils.isBlank(workflowTitle)) {
             workflowTitle = form.getTemplate().getTitel();
         }
-        boolean ignoreFirstLine = getConfig().isIgnoreFirstLine();
+        int firstLine = getConfig().getFirstLine();
+        int idColumn = getConfig().getIdentifierColumn();
+        int condColumn = getConfig().getConditionalColumn();
         List<Record> recordList = new ArrayList<>();
         InputStream file = null;
         try {
@@ -259,9 +261,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
-
-            if (ignoreFirstLine) {
+            int rowCount = 1;
+            
+            while (rowCount<firstLine) {
                 rowIterator.next();
+                rowCount++;
             }
 
             while (rowIterator.hasNext()) {
@@ -282,7 +286,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             value = cell.getBooleanCellValue() ? "true" : "false";
                             break;
                         case FORMULA:
-                            value = cell.getCellFormula();
+//                            value = cell.getCellFormula();
+                            value = cell.getRichStringCellValue().getString();
                             break;
                         case NUMERIC:
                             value = String.valueOf((int) cell.getNumericCellValue());
@@ -298,10 +303,15 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     map.put(i, value);
                     i++;
                 }
-                Record r = new Record();
-                r.setId(map.get(1));
-                r.setObject(map);
-                recordList.add(r);
+
+                // just add the record if the conditional column contains a value
+                String conditionalValue = map.get(condColumn);
+                if (conditionalValue != null && conditionalValue.trim().length()>0) {
+                    Record r = new Record();
+                    r.setId(map.get(idColumn));
+                    r.setObject(map);
+                    recordList.add(r);
+                }
             }
 
         } catch (InvalidFormatException | IOException e) {

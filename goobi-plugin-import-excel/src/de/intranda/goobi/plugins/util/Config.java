@@ -13,7 +13,9 @@ public class Config {
 
     private String publicationType;
     private String collection;
-    private boolean ignoreFirstLine;
+    private int firstLine;
+    private int identifierColumn;
+    private int conditionalColumn;
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
     private List<GroupMappingObject> groupList = new ArrayList<>();
@@ -28,7 +30,9 @@ public class Config {
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
         collection = xmlConfig.getString("/collection");
-        ignoreFirstLine = xmlConfig.getBoolean("/ignoreFirstLine");
+        firstLine = xmlConfig.getInt("/firstLine", 1);
+        identifierColumn = xmlConfig.getInt("/identifierColumn", 1);
+        conditionalColumn = xmlConfig.getInt("/conditionalColumn", identifierColumn);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {

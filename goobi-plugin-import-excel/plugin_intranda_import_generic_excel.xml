@@ -6,8 +6,12 @@
         <publicationType>Monograph</publicationType>
         <!-- which digital collection to use -->
         <collection>archive#100uaghgw#040volkskundearchivk#040#</collection>
-        <!-- ignore the first row in the Excel sheet -->
-        <ignoreFirstLine>true</ignoreFirstLine>
+        <!-- define which is the first line to start (line 1 is often the header row in the Excel sheet) -->
+        <firstLine>1</firstLine>
+        <!-- which one is the identifier column to use for the Goobi process title (default is 1) -->
+        <identifierColumn>2</identifierColumn>
+        <!-- if there is a column that must contain a value then define it here (default falls back to identifierColumn) -->
+        <conditionalColumn>3</conditionalColumn>
         <!-- which columns shall be mapped to which process property and to which ugh metadata
         column: defines the column number. The first column is 1
         ugh: name of the metadata to use
