@@ -70,7 +70,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     private String processTitle;
     private MassImportForm form;
     private List<ImportType> importTypes = new ArrayList<>();
-    private String title = "generic_import_excel";
+    private String title = "intranda_import_generic_excel";
     private File importFile;
     private String workflowTitle;
 
@@ -402,7 +402,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
      */
 
     private Config loadConfig(String workflowTitle) {
-        XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(this);
+        XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(title);
         xmlConfig.setExpressionEngine(new XPathExpressionEngine());
         xmlConfig.setReloadingStrategy(new FileChangedReloadingStrategy());
 
