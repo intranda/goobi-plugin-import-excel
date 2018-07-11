@@ -71,7 +71,13 @@ public class OpacExcelImport implements IImportPluginVersion2 {
     private String searchField = "12";
 
     public OpacExcelImport() {
-        XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(title);
+        XMLConfiguration xmlConfig = null;
+        try {
+            xmlConfig = ConfigPlugins.getPluginConfig(title);
+        } catch (NoSuchMethodError e) {
+            xmlConfig = ConfigPlugins.getPluginConfig(this);
+
+        }
         identifierPattern = xmlConfig.getString("identifierPattern", "AC\\d+");
         opacName = xmlConfig.getString("opacName", "ALMA WUW");
         searchField = xmlConfig.getString("searchField", "12");
