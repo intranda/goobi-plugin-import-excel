@@ -1,0 +1,8 @@
+<config_plugin>
+    <!-- AC\\d+ for AC numbers, \\d+X? for PPN, everything that does not match this is ignored  -->
+    <identifierPattern>AC\\d+</identifierPattern>
+    <!-- which opac entry from goobi_opac.xml should be used? -->
+    <opacName>ALMA WUW</opacName>
+    <!-- 12 is the ppn/identifier, 8000 is epn -->
+    <searchField>12</searchField>
+</config_plugin>
