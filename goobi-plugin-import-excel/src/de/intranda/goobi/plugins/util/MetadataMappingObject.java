@@ -10,5 +10,9 @@ public class MetadataMappingObject {
     private String propertyName;
     private Integer excelColumn;
     private Integer identifierColumn;
-    
+
+    private String headerName;
+
+    private String normdataHeaderName;
+
 }

@@ -19,13 +19,14 @@ public class Config {
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
     private List<GroupMappingObject> groupList = new ArrayList<>();
+    private String identifierHeaderName;
 
     /**
      * loads the &lt;config&gt; block from xml file
      * 
      * @param xmlConfig
      */
-    
+
     public Config(SubnodeConfiguration xmlConfig) {
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
@@ -33,6 +34,7 @@ public class Config {
         firstLine = xmlConfig.getInt("/firstLine", 1);
         identifierColumn = xmlConfig.getInt("/identifierColumn", 1);
         conditionalColumn = xmlConfig.getInt("/conditionalColumn", identifierColumn);
+        identifierHeaderName = xmlConfig.getString("/identifierHeaderName", null);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
@@ -71,11 +73,16 @@ public class Config {
         String propertyName = md.getString("@name");
         Integer columnNumber = md.getInteger("@column", null);
         Integer identifierColumn = md.getInteger("@identifier", null);
+        String headerName = md.getString("@headerName", null);
+        String normdataHeaderName = md.getString("@normdataHeaderName", null);
+
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
         mmo.setIdentifierColumn(identifierColumn);
         mmo.setPropertyName(propertyName);
         mmo.setRulesetName(rulesetName);
+        mmo.setHeaderName(headerName);
+        mmo.setNormdataHeaderName(normdataHeaderName);
         return mmo;
     }
 
@@ -84,11 +91,27 @@ public class Config {
         Integer firstname = md.getInteger("firstname", null);
         Integer lastname = md.getInteger("lastname", null);
         Integer identifier = md.getInteger("identifier", null);
+        String headerName = md.getString("nameFieldHeader", null);
+        String firstnameHeaderName = md.getString("firstnameFieldHeader", null);
+        String lastnameHeaderName = md.getString("lastnameFieldHeader", null);
+        String normdataHeaderName = md.getString("@normdataHeaderName", null);
+        boolean splitName = md.getBoolean("splitName", false);
+        String splitChar = md.getString("splitChar", " ");
+        boolean firstNameIsFirstPart = md.getBoolean("splitName/@firstNameIsFirstPart", false);
+
         PersonMappingObject pmo = new PersonMappingObject();
         pmo.setFirstnameColumn(firstname);
         pmo.setLastnameColumn(lastname);
         pmo.setIdentifierColumn(identifier);
         pmo.setRulesetName(rulesetName);
+        pmo.setHeaderName(headerName);
+        pmo.setNormdataHeaderName(normdataHeaderName);
+
+        pmo.setFirstnameHeaderName(firstnameHeaderName);
+        pmo.setLastnameHeaderName(lastnameHeaderName);
+        pmo.setSplitChar(splitChar);
+        pmo.setSplitName(splitName);
+        pmo.setFirstNameIsFirst(firstNameIsFirstPart);
         return pmo;
 
     }
