@@ -195,7 +195,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                                     lastname = name.substring(name.lastIndexOf(mmo.getSplitChar()));
                                 } else {
                                     lastname = name.substring(0, name.lastIndexOf(mmo.getSplitChar())).trim();
-                                    firstname = name.substring(name.lastIndexOf(mmo.getSplitChar() +1)).trim();
+                                    firstname = name.substring(name.lastIndexOf(mmo.getSplitChar())+1).trim();
                                 }
                             } else {
                                 lastname = name;
