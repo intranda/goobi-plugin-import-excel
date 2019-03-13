@@ -41,6 +41,7 @@ import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataType;
 import ugh.dl.Prefs;
+import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.PreferencesException;
 import ugh.exceptions.WriteException;
 import ugh.fileformats.mets.MetsMods;
@@ -117,7 +118,9 @@ public class OpacExcelImport implements IImportPluginVersion2 {
             try {
                 ff = convertData();
             } catch (ImportPluginException e1) {
-                io.setErrorMessage(e1.getMessage());
+                if (StringUtils.isNotBlank(e1.getMessage())) {
+                    io.setErrorMessage(e1.getMessage());
+                }
             }
             io.setProcessTitle(getProcessTitle());
             if (ff != null) {
@@ -140,6 +143,9 @@ public class OpacExcelImport implements IImportPluginVersion2 {
                 }
             } else {
                 io.setImportReturnValue(ImportReturnValue.InvalidData);
+                if (StringUtils.isBlank(io.getErrorMessage())) {
+                    io.setErrorMessage("Could not create metadata record. See log file for additional information.");
+                }
             }
             answer.add(io);
         }
@@ -218,52 +224,74 @@ public class OpacExcelImport implements IImportPluginVersion2 {
     public Fileformat convertData() throws ImportPluginException {
         currentIdentifier = data;
 
+        ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(opacName);
+        if (coc == null) {
+            throw new ImportPluginException("Catalogue with name " + opacName + " not found. Please check goobi_opac.xml");
+        }
+        IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
+        if (myImportOpac == null) {
+            throw new ImportPluginException("Opac plugin " + coc.getOpacType() + " not found. Abort.");
+        }
+        Fileformat myRdf = null;
         try {
-            ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(opacName);
-            IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
-            Fileformat myRdf = myImportOpac.search(searchField, currentIdentifier, coc, prefs);
-            if (myRdf != null) {
-                DocStruct ds = myRdf.getDigitalDocument().getLogicalDocStruct();
-                DocStruct anchor = null;
-                if (ds.getType().isAnchor()) {
-                    anchor = ds;
-                    ds = ds.getAllChildren().get(0);
-
+            myRdf = myImportOpac.search(searchField, currentIdentifier, coc, prefs);
+            if (myRdf == null) {
+                throw new ImportPluginException("Could not import record " + currentIdentifier
+                        + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+            }
+        } catch (Exception e1) {
+            throw new ImportPluginException("Could not import record " + currentIdentifier
+                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+        }
+        DocStruct ds = null;
+        DocStruct anchor = null;
+        try {
+            ds = myRdf.getDigitalDocument().getLogicalDocStruct();
+            if (ds.getType().isAnchor()) {
+                anchor = ds;
+                if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
+                    throw new ImportPluginException("Could not import record " + currentIdentifier
+                            + ". Found anchor file, but no children. Try to import the child record.");
                 }
+                ds = ds.getAllChildren().get(0);
+            }
+        } catch (PreferencesException e1) {
+            throw new ImportPluginException("Could not import record " + currentIdentifier
+                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+        }
+        try {
+            ats = myImportOpac.getAtstsl();
+
+            List<? extends Metadata> sort = ds.getAllMetadataByType(prefs.getMetadataTypeByName("CurrentNoSorting"));
+            if (sort != null && !sort.isEmpty()) {
+                volumeNumber = sort.get(0).getValue();
+            }
+
+        } catch (Exception e) {
+            ats = "";
+        }
+
+        // add collection
+        if (currentCollections != null && !currentCollections.isEmpty()) {
+            MetadataType mdt = prefs.getMetadataTypeByName("singleDigCollection");
+            for (String col : currentCollections) {
                 try {
-                    ats = myImportOpac.getAtstsl();
-
-                    List<? extends Metadata> sort = ds.getAllMetadataByType(prefs.getMetadataTypeByName("CurrentNoSorting"));
-                    if (sort != null && !sort.isEmpty()) {
-                        volumeNumber = sort.get(0).getValue();
+                    Metadata md = new Metadata(mdt);
+                    md.setValue(col);
+                    ds.addMetadata(md);
+                    if (anchor != null) {
+                        Metadata md2 = new Metadata(mdt);
+                        md2.setValue(col);
+                        anchor.addMetadata(md2);
                     }
-
-                } catch (Exception e) {
-                    ats = "";
-                }
-
-                // add collection
-                if (currentCollections != null && !currentCollections.isEmpty()) {
-                    MetadataType mdt = prefs.getMetadataTypeByName("singleDigCollection");
-                    for (String col : currentCollections) {
-                        Metadata md = new Metadata(mdt);
-                        md.setValue(col);
-                        ds.addMetadata(md);
-                        if (anchor != null) {
-                            Metadata md2 = new Metadata(mdt);
-                            md2.setValue(col);
-                            anchor.addMetadata(md2);
-                        }
-                    }
+                } catch (MetadataTypeNotAllowedException e) {
+                    log.error(e);
                 }
             }
-            return myRdf;
-        } catch (IOException e1) {
-            log.error(e1);
-        } catch (Exception e) {
-            log.error(e);
         }
-        return null;
+
+        return myRdf;
+
     }
 
     @Override
