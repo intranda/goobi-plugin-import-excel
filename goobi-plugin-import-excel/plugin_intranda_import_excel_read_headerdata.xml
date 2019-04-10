@@ -6,25 +6,28 @@
         <publicationType>Monograph</publicationType>
         <!-- which digital collection to use -->
         <collection>archive#100uaghgw#040volkskundearchivk#040#</collection>
-        <identifierHeaderName>1-PPN-Digital</identifierHeaderName>
+        <identifierHeaderName>PPN-A</identifierHeaderName>
+        <useOpac>true</useOpac>
+        <opacName>GBV PICA</opacName>
+        <searchField>12</searchField>
         <!-- which columns shall be mapped to which process property and to which ugh metadata column: defines the column number. The first column is 1 ugh: name of the metadata to use name: name of the property - if its missing or empty no property gets generated identifier: column where the gnd data is stored
         -->
-        <metadata ugh="CatalogIDDigital" headerName="1-PPN-Digital" />
-        <metadata ugh="CatalogIDSource" headerName="9-PPN-Orig" />
-        <metadata ugh="PlaceOfPublication" name="Ort" identifier="4" headerName="3-Ort" />
-        <person ugh="Author" headerName="11-Person" normdataHeaderName="7-GND-Person"
-        > <nameFieldHeader>11-Person</nameFieldHeader> 
-        <!-- use this field, if name is written into single field --> 
-        <splitName>true</splitName> 
-        <!-- get fist- and last name from single field and split it on splitChar -->
-         <splitChar firstNameIsFirstPart="false">\, </splitChar> 
-         <!-- default is white space --> 
-         <!-- use this fields, when name is separated into first- and lastname
-         <firstnameFieldHeader></firstnameFieldHeader> 
-         <lastnameFieldHeader></lastnameFieldHeader>
-          --> 
+        <metadata ugh="CatalogIDDigital" headerName="PPN-O" />
+<!--         <metadata ugh="CatalogIDSource" headerName="PPN-A" /> -->
+        <metadata ugh="PlaceOfPublication" name="Ort" identifier="4" headerName="3-Ort" docType="anchor"/>
+        <person ugh="Author" headerName="11-Person" normdataHeaderName="7-GND-Person" docType="child"> 
+            <nameFieldHeader>11-Person</nameFieldHeader> 
+            <!-- use this field, if name is written into single field --> 
+            <splitName>true</splitName> 
+            <!-- get fist- and last name from single field and split it on splitChar -->
+             <splitChar firstNameIsFirstPart="false">\, </splitChar> 
+             <!-- default is white space --> 
+             <!-- use this fields, when name is separated into first- and lastname
+             <firstnameFieldHeader></firstnameFieldHeader> 
+             <lastnameFieldHeader></lastnameFieldHeader>
+              --> 
         </person>
         <metadata ugh="TitleDocMain" headerName="2-Titel" />
-        <metadata ugh="DocLanguage" headerName="10-DocLanguage" />
+        <metadata ugh="DocLanguage" headerName="Sprach" />
     </config>
 </config_plugin>

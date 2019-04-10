@@ -18,4 +18,6 @@ public class PersonMappingObject {
     private boolean splitName;
     private String splitChar;
     private boolean firstNameIsFirst;
+
+    private String docType;
 }

@@ -15,4 +15,5 @@ public class MetadataMappingObject {
 
     private String normdataHeaderName;
 
+    private String docType ;
 }

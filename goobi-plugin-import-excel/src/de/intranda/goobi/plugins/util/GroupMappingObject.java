@@ -13,5 +13,5 @@ public class GroupMappingObject {
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
 
-    
+    private String docType;
 }

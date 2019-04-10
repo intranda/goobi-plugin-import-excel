@@ -21,6 +21,10 @@ public class Config {
     private List<GroupMappingObject> groupList = new ArrayList<>();
     private String identifierHeaderName;
 
+    private boolean useOpac = false;
+    private String opacName;
+    private String searchField;
+
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -51,6 +55,9 @@ public class Config {
             String rulesetName = md.getString("@ugh");
             GroupMappingObject grp = new GroupMappingObject();
             grp.setRulesetName(rulesetName);
+
+            String docType = md.getString("@docType", "child");
+            grp.setDocType(docType);
             List<HierarchicalConfiguration> subList = md.configurationsAt("//person");
             for (HierarchicalConfiguration sub : subList) {
                 PersonMappingObject pmo = getPersons(sub);
@@ -66,6 +73,11 @@ public class Config {
             groupList.add(grp);
 
         }
+        useOpac = xmlConfig.getBoolean("/useOpac", false);
+        if (useOpac) {
+            opacName = xmlConfig.getString("/opacName", "ALMA WUW");
+            searchField = xmlConfig.getString("/searchField", "12");
+        }
     }
 
     private MetadataMappingObject getMetadata(HierarchicalConfiguration md) {
@@ -75,6 +87,8 @@ public class Config {
         Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
+        String docType = md.getString("@docType", "child");
+
 
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
@@ -83,6 +97,7 @@ public class Config {
         mmo.setRulesetName(rulesetName);
         mmo.setHeaderName(headerName);
         mmo.setNormdataHeaderName(normdataHeaderName);
+        mmo.setDocType(docType);
         return mmo;
     }
 
@@ -98,6 +113,7 @@ public class Config {
         boolean splitName = md.getBoolean("splitName", false);
         String splitChar = md.getString("splitChar", " ");
         boolean firstNameIsFirstPart = md.getBoolean("splitName/@firstNameIsFirstPart", false);
+        String docType = md.getString("@docType", "child");
 
         PersonMappingObject pmo = new PersonMappingObject();
         pmo.setFirstnameColumn(firstname);
@@ -112,6 +128,7 @@ public class Config {
         pmo.setSplitChar(splitChar);
         pmo.setSplitName(splitName);
         pmo.setFirstNameIsFirst(firstNameIsFirstPart);
+        pmo.setDocType(docType);
         return pmo;
 
     }

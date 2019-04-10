@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +31,9 @@ import org.goobi.production.enums.PluginType;
 import org.goobi.production.importer.DocstructElement;
 import org.goobi.production.importer.ImportObject;
 import org.goobi.production.importer.Record;
+import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IImportPluginVersion2;
+import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
 import org.goobi.production.properties.ImportProperty;
 
@@ -40,7 +43,10 @@ import de.intranda.goobi.plugins.util.MetadataMappingObject;
 import de.intranda.goobi.plugins.util.PersonMappingObject;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.forms.MassImportForm;
+import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
+import de.unigoettingen.sub.search.opac.ConfigOpac;
+import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -74,7 +80,6 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
     private String volumeNumber;
     private String processTitle;
 
-
     private String title = "intranda_import_excel_read_headerdata";
 
     private Map<String, Integer> headerOrder;
@@ -97,7 +102,57 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
     public void setData(Record r) {
     }
 
+    private Fileformat getRecordFromCatalogue(String identifier) throws ImportPluginException {
+        ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(config.getOpacName());
+        if (coc == null) {
+            throw new ImportPluginException("Catalogue with name " + config.getOpacName() + " not found. Please check goobi_opac.xml");
+        }
+        IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
+        if (myImportOpac == null) {
+            throw new ImportPluginException("Opac plugin " + coc.getOpacType() + " not found. Abort.");
+        }
+        Fileformat myRdf = null;
+        try {
+            myRdf = myImportOpac.search(config.getSearchField(), identifier, coc, prefs);
+            if (myRdf == null) {
+                throw new ImportPluginException("Could not import record " + identifier
+                        + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+            }
+        } catch (Exception e1) {
+            throw new ImportPluginException("Could not import record " + identifier
+                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+        }
+        DocStruct ds = null;
+        DocStruct anchor = null;
+        try {
+            ds = myRdf.getDigitalDocument().getLogicalDocStruct();
+            if (ds.getType().isAnchor()) {
+                anchor = ds;
+                if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
+                    throw new ImportPluginException("Could not import record " + identifier
+                            + ". Found anchor file, but no children. Try to import the child record.");
+                }
+                ds = ds.getAllChildren().get(0);
+            }
+        } catch (PreferencesException e1) {
+            throw new ImportPluginException("Could not import record " + identifier
+                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+        }
+        try {
+            ats = myImportOpac.getAtstsl();
 
+            List<? extends Metadata> sort = ds.getAllMetadataByType(prefs.getMetadataTypeByName("CurrentNoSorting"));
+            if (sort != null && !sort.isEmpty()) {
+                volumeNumber = sort.get(0).getValue();
+            }
+
+        } catch (Exception e) {
+            ats = "";
+        }
+
+
+        return myRdf;
+    }
 
     @Override
     public List<ImportObject> generateFiles(List<Record> records) {
@@ -105,16 +160,53 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
         for (Record record : records) {
             ImportObject io = new ImportObject();
-            try {
-                // generate a mets file
-                Fileformat ff = new MetsMods(prefs);
-                DigitalDocument digitalDocument = new DigitalDocument();
-                ff.setDigitalDocument(digitalDocument);
 
-                String publicationType = getConfig().getPublicationType();
-                DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
-                DocStruct logical = digitalDocument.createDocStruct(logicalType);
-                digitalDocument.setLogicalDocStruct(logical);
+            try {
+
+                Object tempObject = record.getObject();
+                Map<Integer, String> rowMap = (Map<Integer, String>) tempObject;
+
+                // generate a mets file
+                DigitalDocument digitalDocument = null;
+                Fileformat ff = null;
+                DocStruct logical = null;
+                DocStruct anchor = null;
+                if (!config.isUseOpac()) {
+                    ff = new MetsMods(prefs);
+                    digitalDocument = new DigitalDocument();
+                    ff.setDigitalDocument(digitalDocument);
+                    String publicationType = getConfig().getPublicationType();
+                    DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
+                    logical = digitalDocument.createDocStruct(logicalType);
+                    digitalDocument.setLogicalDocStruct(logical);
+                    answer.add(io);
+                } else {
+                    try {
+                        if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
+                            Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
+                            return Collections.emptyList();
+                        }
+
+                        String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
+                        if (StringUtils.isBlank(catalogueIdentifier)) {
+                            continue;
+                        }
+                        ff = getRecordFromCatalogue(catalogueIdentifier);
+                        digitalDocument = ff.getDigitalDocument();
+                        logical = digitalDocument.getLogicalDocStruct();
+                        if (logical.getType().isAnchor()) {
+                            anchor = logical;
+                            logical = anchor.getAllChildren().get(0);
+                        }
+                        answer.add(io);
+                    } catch (ImportPluginException e) {
+                        log.error(e);
+                        io.setErrorMessage(e.getMessage());
+                        io.setImportReturnValue(ImportReturnValue.NoData);
+                        continue;
+                    }
+                }
+
                 DocStructType physicalType = prefs.getDocStrctTypeByName("BoundBook");
                 DocStruct physical = digitalDocument.createDocStruct(physicalType);
                 digitalDocument.setPhysicalDocStruct(physical);
@@ -144,9 +236,6 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                 io.setProcessTitle(record.getId());
                 io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
-                Object tempObject = record.getObject();
-                Map<Integer, String> rowMap = (Map<Integer, String>) tempObject;
-
                 for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
 
                     String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
@@ -162,7 +251,11 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                                 md.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
 
                             }
-                            logical.addMetadata(md);
+                            if (anchor != null && "anchor".equals(mmo.getDocType())) {
+                                anchor.addMetadata(md);
+                            } else {
+                                logical.addMetadata(md);
+                            }
                         } catch (MetadataTypeNotAllowedException e) {
                             log.info(e);
                             // Metadata is not known or not allowed
@@ -195,7 +288,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                                     lastname = name.substring(name.lastIndexOf(mmo.getSplitChar()));
                                 } else {
                                     lastname = name.substring(0, name.lastIndexOf(mmo.getSplitChar())).trim();
-                                    firstname = name.substring(name.lastIndexOf(mmo.getSplitChar())+1).trim();
+                                    firstname = name.substring(name.lastIndexOf(mmo.getSplitChar()) + 1).trim();
                                 }
                             } else {
                                 lastname = name;
@@ -219,7 +312,13 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                             if (identifier != null) {
                                 p.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
                             }
-                            logical.addPerson(p);
+                            if (anchor != null && "anchor".equals(mmo.getDocType())) {
+                                anchor.addPerson(p);
+                            } else {
+                                logical.addPerson(p);
+                            }
+
+                            //                            logical.addPerson(p);
                         } catch (MetadataTypeNotAllowedException e) {
                             log.info(e);
                             // Metadata is not known or not allowed
@@ -271,7 +370,13 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                             }
                             group.addMetadata(p);
                         }
-                        logical.addMetadataGroup(group);
+                        if (anchor != null && "anchor".equals(gmo.getDocType())) {
+                            anchor.addMetadataGroup(group);
+                        } else {
+                            logical.addMetadataGroup(group);
+                        }
+
+                        //                        logical.addMetadataGroup(group);
 
                     } catch (MetadataTypeNotAllowedException e) {
                         log.info(e);
@@ -285,7 +390,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());
             }
-            answer.add(io);
+
         }
         // end of all excel rows
         return answer;
