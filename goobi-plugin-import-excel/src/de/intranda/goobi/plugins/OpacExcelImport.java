@@ -35,7 +35,6 @@ import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
-import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
@@ -48,7 +47,7 @@ import ugh.fileformats.mets.MetsMods;
 
 @Log4j
 @Data
-@PluginImplementation
+//@PluginImplementation
 public class OpacExcelImport implements IImportPluginVersion2 {
 
     private Prefs prefs;

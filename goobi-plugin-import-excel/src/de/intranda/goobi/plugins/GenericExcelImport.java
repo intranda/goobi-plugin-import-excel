@@ -19,10 +19,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.goobi.beans.Processproperty;
 import org.goobi.production.enums.ImportReturnValue;
 import org.goobi.production.enums.ImportType;
@@ -30,7 +30,6 @@ import org.goobi.production.enums.PluginType;
 import org.goobi.production.importer.DocstructElement;
 import org.goobi.production.importer.ImportObject;
 import org.goobi.production.importer.Record;
-import org.goobi.production.plugin.interfaces.IImportPlugin;
 import org.goobi.production.plugin.interfaces.IImportPluginVersion2;
 import org.goobi.production.plugin.interfaces.IPlugin;
 import org.goobi.production.properties.ImportProperty;
@@ -44,7 +43,6 @@ import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
-import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.DocStructType;
@@ -61,7 +59,7 @@ import ugh.fileformats.mets.MetsMods;
 
 @Log4j
 @Data
-@PluginImplementation
+//@PluginImplementation
 public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private Prefs prefs;
@@ -94,7 +92,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public List<ImportObject> generateFiles(List<Record> records) {
-        List<ImportObject> answer = new ArrayList<ImportObject>();
+        List<ImportObject> answer = new ArrayList<>();
 
         for (Record record : records) {
             ImportObject io = new ImportObject();
@@ -262,7 +260,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
             int rowCount = 1;
-            
+
             while (rowCount<firstLine) {
                 rowIterator.next();
                 rowCount++;
@@ -286,7 +284,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             value = cell.getBooleanCellValue() ? "true" : "false";
                             break;
                         case FORMULA:
-//                            value = cell.getCellFormula();
+                            //                            value = cell.getCellFormula();
                             value = cell.getRichStringCellValue().getString();
                             break;
                         case NUMERIC:
@@ -398,6 +396,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return PluginType.Import;
     }
 
+    @Override
     public boolean isRunnableAsGoobiScript() {
         return true;
     }
