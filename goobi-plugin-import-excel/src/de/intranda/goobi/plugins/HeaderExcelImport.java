@@ -243,7 +243,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                     if (mmo.getNormdataHeaderName() != null) {
                         identifier = rowMap.get(headerOrder.get(mmo.getNormdataHeaderName()));
                     }
-                    if (StringUtils.isNotBlank(mmo.getRulesetName())) {
+                    if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
                         try {
                             Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
                             md.setValue(value);
@@ -261,7 +261,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                             // Metadata is not known or not allowed
                         }
 
-                        if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital")) {
+                        if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital") && !"anchor".equals(mmo.getDocType())) {
                             fileName = getImportFolder() + File.separator + value + ".xml";
                             io.setProcessTitle(value);
                             io.setMetsFilename(fileName);
