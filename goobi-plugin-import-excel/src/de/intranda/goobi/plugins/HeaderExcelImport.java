@@ -415,17 +415,24 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
         InputStream fileInputStream = null;
         try {
             fileInputStream = new FileInputStream(file);
-
             BOMInputStream in = new BOMInputStream(fileInputStream, false);
-
             Workbook wb = WorkbookFactory.create(in);
-
             Sheet sheet = wb.getSheetAt(0);
-
             Iterator<Row> rowIterator = sheet.rowIterator();
-            //  read and validate first row
-            Row headerRow = rowIterator.next();
-
+            
+            // get header and data row number from config first
+            int rowHeader = getConfig().getRowHeader();
+            int rowDataStart = getConfig().getRowDataStart();
+            int rowCounter = 0;
+            
+            //  find the header row
+            Row headerRow = null;
+            while (rowCounter < rowHeader) {
+                headerRow = rowIterator.next();
+            	rowCounter++;
+            }
+            
+            //  read and validate the header row
             int numberOfCells = headerRow.getLastCellNum();
             for (int i = 0; i < numberOfCells; i++) {
                 Cell cell = headerRow.getCell(i);
@@ -436,6 +443,13 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                 }
             }
 
+            // find out the first data row
+            while (rowCounter < rowDataStart - 1) {
+                headerRow = rowIterator.next();
+            	rowCounter++;
+            }
+            
+            // run through all the data rows
             while (rowIterator.hasNext()) {
                 Map<Integer, String> map = new HashMap<>();
                 Row row = rowIterator.next();

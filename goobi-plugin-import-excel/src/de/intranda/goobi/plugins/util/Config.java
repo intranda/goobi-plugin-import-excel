@@ -16,6 +16,8 @@ public class Config {
     private int firstLine;
     private int identifierColumn;
     private int conditionalColumn;
+    private int rowHeader;
+    private int rowDataStart;
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
     private List<GroupMappingObject> groupList = new ArrayList<>();
@@ -34,12 +36,14 @@ public class Config {
     public Config(SubnodeConfiguration xmlConfig) {
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
-        collection = xmlConfig.getString("/collection");
+        collection = xmlConfig.getString("/collection", "");
         firstLine = xmlConfig.getInt("/firstLine", 1);
         identifierColumn = xmlConfig.getInt("/identifierColumn", 1);
         conditionalColumn = xmlConfig.getInt("/conditionalColumn", identifierColumn);
         identifierHeaderName = xmlConfig.getString("/identifierHeaderName", null);
-
+        rowHeader = xmlConfig.getInt("/rowHeader", 1);
+        rowDataStart = xmlConfig.getInt("/rowDataStart", 2);
+        
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
             metadataList.add(getMetadata(md));
