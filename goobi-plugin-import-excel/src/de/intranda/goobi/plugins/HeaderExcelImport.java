@@ -423,6 +423,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             // get header and data row number from config first
             int rowHeader = getConfig().getRowHeader();
             int rowDataStart = getConfig().getRowDataStart();
+            int rowDataEnd = getConfig().getRowDataEnd();
             int rowCounter = 0;
             
             //  find the header row
@@ -450,9 +451,10 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             }
             
             // run through all the data rows
-            while (rowIterator.hasNext()) {
+            while (rowIterator.hasNext() && rowCounter < rowDataEnd) {
                 Map<Integer, String> map = new HashMap<>();
                 Row row = rowIterator.next();
+                rowCounter++;
                 int lastColumn = row.getLastCellNum();
                 if (lastColumn == -1) {
                     continue;
@@ -485,13 +487,16 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
                 }
 
-                // just add the record if the conditional column contains a value
-
-                Record r = new Record();
-                r.setId(map.get(headerOrder.get(idColumn)));
-                r.setObject(map);
-                recordList.add(r);
-
+                // just add the record if any column contains a value
+                for (String v : map.values()) {
+					if (v !=null && !v.isEmpty()) {
+						Record r = new Record();
+	                	r.setId(map.get(headerOrder.get(idColumn)));
+	                	r.setObject(map);
+	                	recordList.add(r);
+						break;
+					}
+				}
             }
 
         } catch (Exception e) {

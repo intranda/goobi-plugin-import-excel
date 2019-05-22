@@ -18,6 +18,7 @@ public class Config {
     private int conditionalColumn;
     private int rowHeader;
     private int rowDataStart;
+    private int rowDataEnd;
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
     private List<GroupMappingObject> groupList = new ArrayList<>();
@@ -43,6 +44,7 @@ public class Config {
         identifierHeaderName = xmlConfig.getString("/identifierHeaderName", null);
         rowHeader = xmlConfig.getInt("/rowHeader", 1);
         rowDataStart = xmlConfig.getInt("/rowDataStart", 2);
+        rowDataEnd = xmlConfig.getInt("/rowDataEnd", 20000);
         
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
