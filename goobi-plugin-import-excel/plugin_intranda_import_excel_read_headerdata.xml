@@ -26,15 +26,15 @@
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
 			headerName: title inside of the header column
-            name: name of the property. if it is empty or missing, no property gets generated
-            identifier: title of the header column to use for a gnd identifier
-            docType: define if the metadata should be added to the anchor or child element. Gets ignored, when the record is no multivolume. Default is child 
+            name: name of the process property. if it is empty or missing, no process property gets generated
+            identifier: title of the header column to use for a gnd authority identifier
+            docType: define if the metadata should be added to the anchor or child element. Gets ignored, when the record is no multivolume. Default is 'child', valid values are 'child' and 'anchor'
              -->
+		<metadata ugh="CatalogIDSource" headerName="PPN-A" />
 		<metadata ugh="CatalogIDDigital" headerName="PPN-O" />
 		<metadata ugh="TitleDocMain" headerName="2-Titel" />
-		<metadata ugh="DocLanguage" headerName="10-DocLanguage" />
-		<metadata ugh="CatalogIDSource" headerName="PPN-A" />
 		<metadata ugh="PlaceOfPublication" name="Ort" identifier="4-GND-ORT" headerName="3-Ort" docType="anchor" />
+		<metadata ugh="DocLanguage" headerName="10-DocLanguage" />
 
 		<!-- a configuration for a person might look like this -->
 		<person ugh="Author" normdataHeaderName="7-GND-Person" docType="child">
