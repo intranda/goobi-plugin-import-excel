@@ -25,27 +25,32 @@
 
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
-			headerName: title inside of the header column -->
+			headerName: title inside of the header column
+            name: name of the property. if it is empty or missing, no property gets generated
+            identifier: title of the header column to use for a gnd identifier
+            docType: define if the metadata should be added to the anchor or child element. Gets ignored, when the record is no multivolume. Default is child 
+             -->
 		<metadata ugh="CatalogIDDigital" headerName="PPN-O" />
 		<metadata ugh="TitleDocMain" headerName="2-Titel" />
-		<metadata ugh="DocLanguage" headerName="Sprach" />
+		<metadata ugh="DocLanguage" headerName="10-DocLanguage" />
 		<metadata ugh="CatalogIDSource" headerName="PPN-A" />
+		<metadata ugh="PlaceOfPublication" name="Ort" identifier="4-GND-ORT" headerName="3-Ort" docType="anchor" />
 
-		<!-- a more complex metadata configuration might look like this -->
-		<metadata ugh="PlaceOfPublication" name="Ort" identifier="4" headerName="3-Ort" docType="anchor" />
-		
 		<!-- a configuration for a person might look like this -->
-		<person ugh="Author" headerName="11-Person" normdataHeaderName="7-GND-Person" docType="child">
+		<person ugh="Author" normdataHeaderName="7-GND-Person" docType="child">
+            <!-- use this field if the column contains the complete name -->
 			<nameFieldHeader>11-Person</nameFieldHeader>
-
-			<!-- use this field, if name is written into single field -->
+			<!-- set this field to true, if the name must be splitted into first- and lastname. The complete name gets written into lastname -->
 			<splitName>true</splitName>
-
-			<!-- get fist- and last name from single field and split it on splitChar -->
+			<!-- define at which character the name is separated. @firstNameIsFirstPart defines, if the firstname is the first or last part of the name -->
 			<splitChar firstNameIsFirstPart="false">\, </splitChar>
 
-			<!-- default is white space -->
-			<!-- use this fields, when name is separated into first- and lastname <firstnameFieldHeader></firstnameFieldHeader> <lastnameFieldHeader></lastnameFieldHeader> -->
+            <!-- use this fields, if the firstname and lastname are in different columns -->
+            <!-- 
+            <firstname>5-Vorname</firstname>
+            <lastname>6-Nachname</lastname>
+             -->
+
 		</person>
 		
 	</config>
