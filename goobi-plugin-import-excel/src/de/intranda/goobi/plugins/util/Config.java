@@ -28,6 +28,8 @@ public class Config {
     private String opacName;
     private String searchField;
 
+    private String processtitleRule;
+
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -45,7 +47,9 @@ public class Config {
         rowHeader = xmlConfig.getInt("/rowHeader", 1);
         rowDataStart = xmlConfig.getInt("/rowDataStart", 2);
         rowDataEnd = xmlConfig.getInt("/rowDataEnd", 20000);
-        
+
+        processtitleRule = xmlConfig.getString("/processTitleRule", null);
+
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
             metadataList.add(getMetadata(md));

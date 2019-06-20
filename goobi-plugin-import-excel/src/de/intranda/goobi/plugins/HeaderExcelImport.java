@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -42,6 +43,7 @@ import de.intranda.goobi.plugins.util.GroupMappingObject;
 import de.intranda.goobi.plugins.util.MetadataMappingObject;
 import de.intranda.goobi.plugins.util.PersonMappingObject;
 import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
@@ -150,7 +152,6 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             ats = "";
         }
 
-
         return myRdf;
     }
 
@@ -233,7 +234,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                 String fileName = null;
 
                 // create importobject for massimport
-                io.setProcessTitle(record.getId());
+
                 io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
                 for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
@@ -260,13 +261,52 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                             log.info(e);
                             // Metadata is not known or not allowed
                         }
-
+                        // create a default title
                         if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital") && !"anchor".equals(mmo.getDocType())) {
                             fileName = getImportFolder() + File.separator + value + ".xml";
                             io.setProcessTitle(value);
                             io.setMetsFilename(fileName);
                         }
                     }
+                    if (StringUtils.isNotBlank(config.getProcesstitleRule())) {
+                        StringBuilder title = new StringBuilder();
+                        StringTokenizer tokenizer = new StringTokenizer(config.getProcesstitleRule(), "+");
+                        while (tokenizer.hasMoreTokens()) {
+                            String myString = tokenizer.nextToken();
+                            /*
+                             * wenn der String mit ' anfängt und mit ' endet, dann den Inhalt so übernehmen
+                             */
+                            if (myString.startsWith("'") && myString.endsWith("'")) {
+                                title.append(myString.substring(1, myString.length() - 1));
+                            } else {
+                                if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
+                                    if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
+                                        // replace white spaces with dash, remove other special characters
+                                        title.append(rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
+                                    }
+                                } else {
+                                    title.append(rowMap.get(headerOrder.get(myString)));
+                                }
+
+                            }
+                        }
+                        String newTitle = title.toString();
+                        if (newTitle.endsWith("_")) {
+                            newTitle = newTitle.substring(0, newTitle.length() - 1);
+                        }
+                        // remove non-ascii characters for the sake of TIFF header limits
+                        String regex = ConfigurationHelper.getInstance().getProcessTitleReplacementRegex();
+
+                        String filteredTitle = newTitle.replaceAll(regex, "");
+
+
+                        // set new process title
+                        fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
+                        io.setProcessTitle(filteredTitle);
+                        io.setMetsFilename(fileName);
+
+                    }
+
 
                     if (StringUtils.isNotBlank(mmo.getPropertyName())) {
                         Processproperty p = new Processproperty();
@@ -407,7 +447,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
         if (StringUtils.isBlank(workflowTitle)) {
             workflowTitle = form.getTemplate().getTitel();
         }
-
+        config = null;
         List<Record> recordList = new ArrayList<>();
         String idColumn = getConfig().getIdentifierHeaderName();
         headerOrder = new HashMap<>();
@@ -419,20 +459,20 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             Workbook wb = WorkbookFactory.create(in);
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
-            
+
             // get header and data row number from config first
             int rowHeader = getConfig().getRowHeader();
             int rowDataStart = getConfig().getRowDataStart();
             int rowDataEnd = getConfig().getRowDataEnd();
             int rowCounter = 0;
-            
+
             //  find the header row
             Row headerRow = null;
             while (rowCounter < rowHeader) {
                 headerRow = rowIterator.next();
-            	rowCounter++;
+                rowCounter++;
             }
-            
+
             //  read and validate the header row
             int numberOfCells = headerRow.getLastCellNum();
             for (int i = 0; i < numberOfCells; i++) {
@@ -447,9 +487,9 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             // find out the first data row
             while (rowCounter < rowDataStart - 1) {
                 headerRow = rowIterator.next();
-            	rowCounter++;
+                rowCounter++;
             }
-            
+
             // run through all the data rows
             while (rowIterator.hasNext() && rowCounter < rowDataEnd) {
                 Map<Integer, String> map = new HashMap<>();
@@ -489,14 +529,14 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
                 // just add the record if any column contains a value
                 for (String v : map.values()) {
-					if (v !=null && !v.isEmpty()) {
-						Record r = new Record();
-	                	r.setId(map.get(headerOrder.get(idColumn)));
-	                	r.setObject(map);
-	                	recordList.add(r);
-						break;
-					}
-				}
+                    if (v != null && !v.isEmpty()) {
+                        Record r = new Record();
+                        r.setId(map.get(headerOrder.get(idColumn)));
+                        r.setObject(map);
+                        recordList.add(r);
+                        break;
+                    }
+                }
             }
 
         } catch (Exception e) {
