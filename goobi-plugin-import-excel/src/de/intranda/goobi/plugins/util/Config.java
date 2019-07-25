@@ -94,7 +94,7 @@ public class Config {
         String rulesetName = md.getString("@ugh");
         String propertyName = md.getString("@name");
         Integer columnNumber = md.getInteger("@column", null);
-        Integer identifierColumn = md.getInteger("@identifier", null);
+//        Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
@@ -102,7 +102,7 @@ public class Config {
 
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
-        mmo.setIdentifierColumn(identifierColumn);
+//        mmo.setIdentifierColumn(identifierColumn);
         mmo.setPropertyName(propertyName);
         mmo.setRulesetName(rulesetName);
         mmo.setHeaderName(headerName);

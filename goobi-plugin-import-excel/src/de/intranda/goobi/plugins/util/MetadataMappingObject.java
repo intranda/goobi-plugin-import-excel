@@ -9,7 +9,7 @@ public class MetadataMappingObject {
     private String rulesetName;
     private String propertyName;
     private Integer excelColumn;
-    private Integer identifierColumn;
+//    private Integer identifierColumn;
 
     private String headerName;
 
