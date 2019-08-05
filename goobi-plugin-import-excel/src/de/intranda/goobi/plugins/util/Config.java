@@ -30,6 +30,10 @@ public class Config {
 
     private String processtitleRule;
 
+    private String imageFolderPath;
+    private String imageFolderHeaderName;
+
+
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -49,6 +53,9 @@ public class Config {
         rowDataEnd = xmlConfig.getInt("/rowDataEnd", 20000);
 
         processtitleRule = xmlConfig.getString("/processTitleRule", null);
+
+        imageFolderPath = xmlConfig.getString("/imageFolderPath", null);
+        imageFolderHeaderName = xmlConfig.getString("/imageFolderHeaderName", null);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
@@ -94,7 +101,7 @@ public class Config {
         String rulesetName = md.getString("@ugh");
         String propertyName = md.getString("@name");
         Integer columnNumber = md.getInteger("@column", null);
-//        Integer identifierColumn = md.getInteger("@identifier", null);
+        //        Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
@@ -102,7 +109,7 @@ public class Config {
 
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
-//        mmo.setIdentifierColumn(identifierColumn);
+        //        mmo.setIdentifierColumn(identifierColumn);
         mmo.setPropertyName(propertyName);
         mmo.setRulesetName(rulesetName);
         mmo.setHeaderName(headerName);

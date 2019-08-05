@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,6 +49,7 @@ import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
@@ -282,7 +286,8 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                                 if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
                                     if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
                                         // replace white spaces with dash, remove other special characters
-                                        title.append(rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
+                                        title.append(rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]",
+                                                ""));
                                     }
                                 } else {
                                     title.append(rowMap.get(headerOrder.get(myString)));
@@ -299,14 +304,12 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
                         String filteredTitle = newTitle.replaceAll(regex, "");
 
-
                         // set new process title
                         fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
                         io.setProcessTitle(filteredTitle);
                         io.setMetsFilename(fileName);
 
                     }
-
 
                     if (StringUtils.isNotBlank(mmo.getPropertyName())) {
                         Processproperty p = new Processproperty();
@@ -426,6 +429,30 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
                 // write mets file into import folder
                 ff.write(fileName);
+
+                if (StringUtils.isNotBlank(config.getImageFolderHeaderName()) && StringUtils.isNotBlank(rowMap.get(headerOrder.get(config
+                        .getImageFolderHeaderName())))) {
+
+                    Path imageSourceFolder = null;
+                    if (config.getImageFolderPath() != null) {
+                        imageSourceFolder = Paths.get(config.getImageFolderPath(), rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
+                    } else {
+                        imageSourceFolder = Paths.get(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
+                    }
+                    if (Files.exists(imageSourceFolder) && Files.isDirectory(imageSourceFolder)) {
+
+                        // folder name
+                        String foldername = fileName.replace(".xml", "");
+                        Path path = Paths.get(foldername, "images", "master_" + io.getProcessTitle() + "_media");
+                        try {
+                            Files.createDirectories(path.getParent());
+                            StorageProvider.getInstance().move(imageSourceFolder, path);
+                        } catch (IOException e) {
+                            log.error(e);
+                        }
+
+                    }
+                }
             } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());

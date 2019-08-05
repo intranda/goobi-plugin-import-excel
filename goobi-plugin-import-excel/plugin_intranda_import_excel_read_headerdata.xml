@@ -28,6 +28,12 @@
             If the field is missing or empty, the value of CatalogIDDigital is used.
          -->
         <processTitleRule>2-Titel+'_'+PPN-O</processTitleRule>
+        
+        <!-- prefix path to the image folder. Can be empty or missing if the import doesn't contain images or if the excel field contains absolute path  -->
+        <imageFolderPath>/opt/digiverso/images/</imageFolderPath>
+        <!-- define which column contains the image folder name. Can be combined with <imageFolderPath> prefix or an absolute path. 
+        If the field is missing, empty or does not contain an existing directory, no images will be imported -->
+        <imageFolderHeaderName>images</imageFolderHeaderName>
 
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
