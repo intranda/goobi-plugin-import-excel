@@ -88,7 +88,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
     private String title = "intranda_import_excel_read_headerdata";
 
-    private Map<String, Integer> headerOrder;
+    //    private Map<String, Integer> headerOrder;
 
     private List<ImportType> importTypes;
     private String workflowTitle;
@@ -135,8 +135,8 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             if (ds.getType().isAnchor()) {
                 anchor = ds;
                 if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
-                    throw new ImportPluginException("Could not import record " + identifier
-                            + ". Found anchor file, but no children. Try to import the child record.");
+                    throw new ImportPluginException(
+                            "Could not import record " + identifier + ". Found anchor file, but no children. Try to import the child record.");
                 }
                 ds = ds.getAllChildren().get(0);
             }
@@ -159,6 +159,8 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
         return myRdf;
     }
 
+
+    @SuppressWarnings("unchecked")
     @Override
     public List<ImportObject> generateFiles(List<Record> records) {
         List<ImportObject> answer = new ArrayList<>();
@@ -169,7 +171,10 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
             try {
 
                 Object tempObject = record.getObject();
-                Map<Integer, String> rowMap = (Map<Integer, String>) tempObject;
+
+                List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
+                Map<String, Integer> headerOrder = (Map<String, Integer>) list.get(0);
+                Map<Integer, String> rowMap = (Map<Integer, String>) list.get(1);
 
                 // generate a mets file
                 DigitalDocument digitalDocument = null;
@@ -286,8 +291,8 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                                 if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
                                     if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
                                         // replace white spaces with dash, remove other special characters
-                                        title.append(rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]",
-                                                ""));
+                                        title.append(
+                                                rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                     }
                                 } else {
                                     title.append(rowMap.get(headerOrder.get(myString)));
@@ -430,8 +435,8 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                 // write mets file into import folder
                 ff.write(fileName);
 
-                if (StringUtils.isNotBlank(config.getImageFolderHeaderName()) && StringUtils.isNotBlank(rowMap.get(headerOrder.get(config
-                        .getImageFolderHeaderName())))) {
+                if (StringUtils.isNotBlank(config.getImageFolderHeaderName())
+                        && StringUtils.isNotBlank(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())))) {
 
                     Path imageSourceFolder = null;
                     if (config.getImageFolderPath() != null) {
@@ -477,7 +482,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
         config = null;
         List<Record> recordList = new ArrayList<>();
         String idColumn = getConfig().getIdentifierHeaderName();
-        headerOrder = new HashMap<>();
+        Map<String, Integer> headerOrder = new HashMap<>();
 
         InputStream fileInputStream = null;
         try {
@@ -559,7 +564,11 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                     if (v != null && !v.isEmpty()) {
                         Record r = new Record();
                         r.setId(map.get(headerOrder.get(idColumn)));
-                        r.setObject(map);
+                        List<Map<?, ?>> list = new ArrayList<>();
+                        list.add(headerOrder);
+                        list.add(map);
+
+                        r.setObject(list);
                         recordList.add(r);
                         break;
                     }
@@ -642,8 +651,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public boolean isRunnableAsGoobiScript() {
-        // this must be set to false, otherwise the import fails with an exception because the header row is missing
-        return false;
+        return true;
     }
 
     public Config getConfig() {
