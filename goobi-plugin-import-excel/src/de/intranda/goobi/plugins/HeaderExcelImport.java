@@ -451,7 +451,11 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                         Path path = Paths.get(foldername, "images", "master_" + io.getProcessTitle() + "_media");
                         try {
                             Files.createDirectories(path.getParent());
-                            StorageProvider.getInstance().move(imageSourceFolder, path);
+                            if (config.isMoveImage()) {
+                                StorageProvider.getInstance().move(imageSourceFolder, path);
+                            }else {
+                                StorageProvider.getInstance().copyDirectory(imageSourceFolder, path);
+                            }
                         } catch (IOException e) {
                             log.error(e);
                         }

@@ -35,6 +35,9 @@
         If the field is missing, empty or does not contain an existing directory, no images will be imported -->
         <imageFolderHeaderName>images</imageFolderHeaderName>
 
+        <!-- defines, if images are moved from the source folder to the destination (true) or copied (false) -->
+        <moveImages>true</moveImages>
+
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
 			headerName: title inside of the header column

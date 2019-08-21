@@ -33,6 +33,8 @@ public class Config {
     private String imageFolderPath;
     private String imageFolderHeaderName;
 
+    private boolean moveImage;
+
 
     /**
      * loads the &lt;config&gt; block from xml file
@@ -56,6 +58,8 @@ public class Config {
 
         imageFolderPath = xmlConfig.getString("/imageFolderPath", null);
         imageFolderHeaderName = xmlConfig.getString("/imageFolderHeaderName", null);
+
+        moveImage = xmlConfig.getBoolean("/moveImages", false);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
