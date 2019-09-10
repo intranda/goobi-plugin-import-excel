@@ -38,6 +38,9 @@
         <!-- defines, if images are moved from the source folder to the destination (true) or copied (false) -->
         <moveImages>true</moveImages>
 
+        <!-- Run the import as GoobiScript -->
+        <runAsGoobiScript>true</runAsGoobiScript>
+
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
 			headerName: title inside of the header column

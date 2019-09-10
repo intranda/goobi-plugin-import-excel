@@ -34,6 +34,7 @@ public class Config {
     private String imageFolderHeaderName;
 
     private boolean moveImage;
+    private boolean runAsGoobiScript;
 
 
     /**
@@ -60,6 +61,8 @@ public class Config {
         imageFolderHeaderName = xmlConfig.getString("/imageFolderHeaderName", null);
 
         moveImage = xmlConfig.getBoolean("/moveImages", false);
+
+        runAsGoobiScript = xmlConfig.getBoolean("/runAsGoobiscript", true);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {

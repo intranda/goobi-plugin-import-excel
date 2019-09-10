@@ -655,7 +655,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public boolean isRunnableAsGoobiScript() {
-        return true;
+        return config.isRunAsGoobiScript();
     }
 
     public Config getConfig() {
