@@ -9,7 +9,7 @@ public class GoobiMetadataUpdate {
     public static boolean checkForExistingProcess(String processname) {
         long anzahl = 0;
 
-        anzahl = ProcessManager.countProcessTitle(processname);
+        anzahl = ProcessManager.countProcessTitle(processname, null);
 
         if (anzahl != 0) {
             return true;
