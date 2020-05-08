@@ -42,7 +42,7 @@
         <runAsGoobiScript>true</runAsGoobiScript>
 
 		<!-- define here which columns shall be mapped to which ugh metadata 
-			ugh: name of the metadata to use 
+			ugh: name of the metadata to use. if it is empty or missing, no metadata is generated
 			headerName: title inside of the header column
             property: name of the process property. if it is empty or missing, no process property gets generated
             normdataHeaderName: title of the header column to use for a gnd authority identifier
