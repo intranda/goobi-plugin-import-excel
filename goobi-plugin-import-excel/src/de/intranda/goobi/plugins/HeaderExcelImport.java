@@ -316,7 +316,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
 
                     }
 
-                    if (StringUtils.isNotBlank(mmo.getPropertyName())) {
+                    if (StringUtils.isNotBlank(mmo.getPropertyName()) && StringUtils.isNotBlank(value)) {
                         Processproperty p = new Processproperty();
                         p.setTitel(mmo.getPropertyName());
                         p.setWert(value);
