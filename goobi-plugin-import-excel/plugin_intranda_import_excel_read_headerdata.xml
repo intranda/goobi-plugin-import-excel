@@ -44,14 +44,14 @@
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use 
 			headerName: title inside of the header column
-            name: name of the process property. if it is empty or missing, no process property gets generated
+            property: name of the process property. if it is empty or missing, no process property gets generated
             normdataHeaderName: title of the header column to use for a gnd authority identifier
             docType: define if the metadata should be added to the anchor or child element. Gets ignored, when the record is no multivolume. Default is 'child', valid values are 'child' and 'anchor'
              -->
 		<metadata ugh="CatalogIDSource" headerName="PPN-A" />
 		<metadata ugh="CatalogIDDigital" headerName="PPN-O" />
 		<metadata ugh="TitleDocMain" headerName="2-Titel" />
-		<metadata ugh="PlaceOfPublication" name="Ort" normdataHeaderName="4-GND-ORT" headerName="3-Ort" docType="anchor" />
+		<metadata ugh="PlaceOfPublication" property="Ort" normdataHeaderName="4-GND-ORT" headerName="3-Ort" docType="anchor" />
 		<metadata ugh="DocLanguage" headerName="10-DocLanguage" />
 
 		<!-- a configuration for a person might look like this -->

@@ -106,7 +106,7 @@ public class Config {
 
     private MetadataMappingObject getMetadata(HierarchicalConfiguration md) {
         String rulesetName = md.getString("@ugh");
-        String propertyName = md.getString("@name");
+        String propertyName = md.getString("@property");
         Integer columnNumber = md.getInteger("@column", null);
         //        Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
