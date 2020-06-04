@@ -165,6 +165,13 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
     public List<ImportObject> generateFiles(List<Record> records) {
         List<ImportObject> answer = new ArrayList<>();
 
+        if (StringUtils.isBlank(workflowTitle)) {
+            workflowTitle = form.getTemplate().getTitel();
+            config = null;
+            config = getConfig();
+        }
+
+
         for (Record record : records) {
             ImportObject io = new ImportObject();
 
