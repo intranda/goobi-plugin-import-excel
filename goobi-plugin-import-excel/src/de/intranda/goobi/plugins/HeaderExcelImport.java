@@ -201,9 +201,15 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
                     try {
                         if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
                             Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
+                            log.error("Cannot request catalogue, no identifier column defined");
                             return Collections.emptyList();
                         }
-
+                        Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
+                        if (columnNumber == null) {
+                            Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName() + "' not found in excel file.");
+                            log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName() + "' not found in excel file.");
+                            return Collections.emptyList();
+                        }
                         String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
                         if (StringUtils.isBlank(catalogueIdentifier)) {
                             continue;
