@@ -61,7 +61,7 @@
 			<!-- set this field to true, if the name must be splitted into first- and lastname. The complete name gets written into lastname -->
 			<splitName>true</splitName>
 			<!-- define at which character the name is separated. @firstNameIsFirstPart defines, if the firstname is the first or last part of the name -->
-			<splitChar firstNameIsFirstPart="false">\, </splitChar>
+			<splitChar firstNameIsFirstPart="false">, </splitChar>
 
             <!-- use this fields, if the firstname and lastname are in different columns -->
             <!-- 
