@@ -73,7 +73,7 @@ import ugh.fileformats.mets.MetsMods;
 @Log4j
 @Data
 @PluginImplementation
-public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
+public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private Prefs prefs;
     private MassImportForm form;
@@ -86,7 +86,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
     private String volumeNumber;
     private String processTitle;
 
-    private String title = "intranda_import_excel_read_headerdata";
+    private String title = "intranda_import_excel";
 
     //    private Map<String, Integer> headerOrder;
 
@@ -94,7 +94,7 @@ public class HeaderExcelImport implements IImportPluginVersion2, IPlugin {
     private String workflowTitle;
     private Config config;
 
-    public HeaderExcelImport() {
+    public GenericExcelImport() {
         importTypes = new ArrayList<>();
         importTypes.add(ImportType.FILE);
     }
