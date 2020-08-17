@@ -26,6 +26,7 @@ public class Config {
 
     private boolean useOpac = false;
     private String opacName;
+    private String opacHeader;
     private String searchField;
 
     private String processtitleRule;
@@ -100,6 +101,7 @@ public class Config {
         useOpac = xmlConfig.getBoolean("/useOpac", false);
         if (useOpac) {
             opacName = xmlConfig.getString("/opacName", "ALMA WUW");
+            opacHeader = xmlConfig.getString("/opacHeader", "");
             searchField = xmlConfig.getString("/searchField", "12");
         }
     }

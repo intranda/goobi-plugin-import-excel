@@ -12,11 +12,11 @@ More information about the functionality of this plugin and the complete documen
 
 Detail | Description
 --- | ---
-**Plugin identifier**       | intranda_import_excel_read_headerdata
+**Plugin identifier**       | intranda_import_excel
 **Plugin type**             | Import plugin
 **Licence**                 | GPL 2.0 or newer  
-**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/import/intranda_import_excel_read_headerdata
-**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/import/intranda_import_excel_read_headerdata
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/import/intranda_import_excel
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/import/intranda_import_excel
 
 ## Goobi details
 

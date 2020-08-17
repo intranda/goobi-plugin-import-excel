@@ -108,10 +108,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     public void setData(Record r) {
     }
 
-    private Fileformat getRecordFromCatalogue(String identifier) throws ImportPluginException {
-        ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(config.getOpacName());
+    private Fileformat getRecordFromCatalogue(String identifier, String catalogue) throws ImportPluginException {        
+        ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(catalogue);
         if (coc == null) {
-            throw new ImportPluginException("Catalogue with name " + config.getOpacName() + " not found. Please check goobi_opac.xml");
+            throw new ImportPluginException("Catalogue with name " + catalogue + " not found. Please check goobi_opac.xml");
         }
         IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
         if (myImportOpac == null) {
@@ -214,7 +214,12 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         if (StringUtils.isBlank(catalogueIdentifier)) {
                             continue;
                         }
-                        ff = getRecordFromCatalogue(catalogueIdentifier);
+                        
+                        String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
+                        if (StringUtils.isBlank(catalogue)) {
+                            catalogue = config.getOpacName();
+                        }
+                        ff = getRecordFromCatalogue(catalogueIdentifier, catalogue);
                         digitalDocument = ff.getDigitalDocument();
                         logical = digitalDocument.getLogicalDocStruct();
                         if (logical.getType().isAnchor()) {

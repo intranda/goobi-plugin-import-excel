@@ -7,10 +7,14 @@
 		<publicationType>Monograph</publicationType>
 
 		<!-- which digital collection to use -->
-		<collection>archive#100uaghgw#040volkskundearchivk#040#</collection>
+		<collection>mycollection</collection>
 		
+		<!-- define if a catalogue shall get requested to import metadata -->
 		<useOpac>true</useOpac>
+		<!-- which catalogue to use (as default) -->
 		<opacName>GBV PICA</opacName>
+		<!-- which catalogue to use per record; if missing the default will be used -->
+		<opacHeader>Catalogue</opacHeader>
 		<searchField>12</searchField>
 
 		<!-- define in which row the header is written, usually 1 -->
