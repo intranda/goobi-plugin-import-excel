@@ -35,7 +35,6 @@ import org.goobi.production.enums.PluginType;
 import org.goobi.production.importer.DocstructElement;
 import org.goobi.production.importer.ImportObject;
 import org.goobi.production.importer.Record;
-import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IImportPluginVersion2;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
@@ -108,12 +107,15 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     public void setData(Record r) {
     }
 
-    private Fileformat getRecordFromCatalogue(String identifier, String catalogue) throws ImportPluginException {        
-        ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(catalogue);
-        if (coc == null) {
-            throw new ImportPluginException("Catalogue with name " + catalogue + " not found. Please check goobi_opac.xml");
+    private Fileformat getRecordFromCatalogue(String identifier, String catalogue) throws ImportPluginException {
+        IOpacPlugin myImportOpac = null;
+        ConfigOpacCatalogue coc = null;
+        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues()) {
+            if (configOpacCatalogue.getTitle().equals(config.getOpacName())) {
+                myImportOpac = configOpacCatalogue.getOpacPlugin();
+                coc = configOpacCatalogue;
+            }
         }
-        IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
         if (myImportOpac == null) {
             throw new ImportPluginException("Opac plugin " + coc.getOpacType() + " not found. Abort.");
         }
@@ -214,7 +216,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         if (StringUtils.isBlank(catalogueIdentifier)) {
                             continue;
                         }
-                        
+
                         String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
                         if (StringUtils.isBlank(catalogue)) {
                             catalogue = config.getOpacName();
