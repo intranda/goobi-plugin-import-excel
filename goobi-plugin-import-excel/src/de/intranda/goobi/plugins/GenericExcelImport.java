@@ -117,7 +117,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             }
         }
         if (myImportOpac == null) {
-            throw new ImportPluginException("Opac plugin " + coc.getOpacType() + " not found. Abort.");
+            throw new ImportPluginException("Opac plugin for catalogue " + catalogue + " not found. Abort.");
         }
         Fileformat myRdf = null;
         try {
@@ -176,7 +176,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         for (Record record : records) {
             ImportObject io = new ImportObject();
-
+            answer.add(io);
             try {
 
                 Object tempObject = record.getObject();
@@ -228,8 +228,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             anchor = logical;
                             logical = anchor.getAllChildren().get(0);
                         }
-                        answer.add(io);
-                    } catch (ImportPluginException e) {
+
+                    } catch (Exception e) {
                         log.error(e);
                         io.setErrorMessage(e.getMessage());
                         io.setImportReturnValue(ImportReturnValue.NoData);
