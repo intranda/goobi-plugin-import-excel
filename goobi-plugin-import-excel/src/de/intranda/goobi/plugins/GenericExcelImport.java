@@ -111,7 +111,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         IOpacPlugin myImportOpac = null;
         ConfigOpacCatalogue coc = null;
         for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues()) {
-            if (configOpacCatalogue.getTitle().equals(config.getOpacName())) {
+            if (configOpacCatalogue.getTitle().equals(catalogue)) {
                 myImportOpac = configOpacCatalogue.getOpacPlugin();
                 coc = configOpacCatalogue;
             }
