@@ -175,6 +175,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
 
         for (Record record : records) {
+        	String timestamp = Long.toString(System.currentTimeMillis());
             ImportObject io = new ImportObject();
             answer.add(io);
             try {
@@ -198,7 +199,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
                     logical = digitalDocument.createDocStruct(logicalType);
                     digitalDocument.setLogicalDocStruct(logical);
-                    answer.add(io);
                 } else {
                     try {
                         if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
@@ -314,6 +314,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                         title.append(
                                                 rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                     }
+                                } if (myString.equalsIgnoreCase("timestamp")) {
+                                    title.append(timestamp);
                                 } else {
                                     title.append(rowMap.get(headerOrder.get(myString)));
                                 }
@@ -675,7 +677,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public boolean isRunnableAsGoobiScript() {
-        return config.isRunAsGoobiScript();
+    	return config.isRunAsGoobiScript();
     }
 
     public Config getConfig() {

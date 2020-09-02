@@ -63,7 +63,7 @@ public class Config {
 
         moveImage = xmlConfig.getBoolean("/moveImages", false);
 
-        runAsGoobiScript = xmlConfig.getBoolean("/runAsGoobiscript", true);
+        runAsGoobiScript = xmlConfig.getBoolean("/runAsGoobiScript", true);
 
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
