@@ -45,6 +45,9 @@
         <!-- Run the import as GoobiScript -->
         <runAsGoobiScript>true</runAsGoobiScript>
 
+        <!-- Overwrite any existing processes -->
+        <replaceExistingProcesses>true</replaceExistingProcesses>
+    
 		<!-- define here which columns shall be mapped to which ugh metadata 
 			ugh: name of the metadata to use. if it is empty or missing, no metadata is generated
 			headerName: title inside of the header column

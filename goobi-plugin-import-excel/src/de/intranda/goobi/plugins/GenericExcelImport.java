@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -28,6 +30,7 @@ import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.goobi.beans.Process;
 import org.goobi.beans.Processproperty;
 import org.goobi.production.enums.ImportReturnValue;
 import org.goobi.production.enums.ImportType;
@@ -49,10 +52,14 @@ import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
+import de.sub.goobi.helper.exceptions.SwapException;
+import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DigitalDocument;
@@ -85,12 +92,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     private String volumeNumber;
     private String processTitle;
 
+    private boolean replaceExisting = false;
+    private boolean moveFiles = false;
+    
     private String title = "intranda_import_excel";
 
     //    private Map<String, Integer> headerOrder;
 
     private List<ImportType> importTypes;
     private String workflowTitle;
+    
+    @EqualsAndHashCode.Exclude
     private Config config;
 
     public GenericExcelImport() {
@@ -484,6 +496,30 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                     }
                 }
+                
+                
+                // check if the process exists
+                if (replaceExisting) {
+                    boolean dataReplaced = false;
+                    Process existingProcess = ProcessManager.getProcessByExactTitle(io.getProcessTitle());
+                    if (existingProcess != null) {
+                        try {
+                            existingProcess.writeMetadataFile(ff);
+                            dataReplaced = true;
+                        } catch (WriteException | PreferencesException | IOException | InterruptedException | SwapException | DAOException e) {
+                            log.error(e);
+                        }
+
+                        Path sourceRootFolder = Paths.get(record.getData());
+                        moveImageIntoProcessFolder(existingProcess, sourceRootFolder);
+                    }
+                    if (dataReplaced) {
+                        // TODO delete mets file, anchor file, image folder
+                        answer.remove(io);
+                        continue;
+                    }
+                }
+                
             } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());
@@ -494,6 +530,65 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return answer;
     }
 
+    
+    private void moveImageIntoProcessFolder(Process existingProcess, Path sourceRootFolder) {
+        if (StorageProvider.getInstance().isFileExists(sourceRootFolder)) {
+            Path sourceImageFolder = Paths.get(sourceRootFolder.toString(), "images");
+            Path sourceOcrFolder = Paths.get(sourceRootFolder.toString(), "ocr");
+            if (StorageProvider.getInstance().isDirectory(sourceImageFolder)) {
+                List<Path> dataInSourceImageFolder = StorageProvider.getInstance().listFiles(sourceImageFolder.toString());
+
+                for (Path currentData : dataInSourceImageFolder) {
+                    if (Files.isDirectory(currentData)) {
+                        try {
+                            FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getImagesDirectory()).toFile());
+                        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+                            log.error(e);
+                        }
+                    } else {
+                        try {
+                            FileUtils.copyFile(currentData.toFile(),
+                                    Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()).toFile());
+                        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+                            log.error(e);
+                        }
+                    }
+                }
+            }
+
+            // ocr
+            if (Files.exists(sourceOcrFolder)) {
+                List<Path> dataInSourceImageFolder = StorageProvider.getInstance().listFiles(sourceOcrFolder.toString());
+                for (Path currentData : dataInSourceImageFolder) {
+                    if (Files.isRegularFile(currentData)) {
+                        try {
+                            copyFile(currentData, Paths.get(existingProcess.getOcrDirectory(), currentData.getFileName().toString()));
+                        } catch (IOException | SwapException | DAOException | InterruptedException e) {
+                            log.error(e);
+                        }
+                    } else {
+                        try {
+                            FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getOcrDirectory()).toFile());
+                        } catch (IOException | SwapException | DAOException | InterruptedException e) {
+                            log.error(e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private void copyFile(Path file, Path destination) throws IOException {
+
+        if (moveFiles) {
+            Files.move(file, destination, StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            Files.copy(file, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+    }
+    
+    
     @Override
     public List<Record> splitRecords(String records) {
         return null;
@@ -680,6 +775,14 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     	return config.isRunAsGoobiScript();
     }
 
+//    @Override 
+//    public int hashCode(){
+//        
+//        //this is a random number, to prevent lombok from calling getConfig every time it wants a hash.
+//        return 4589689;  
+//    }
+    
+
     public Config getConfig() {
         if (config == null) {
             config = loadConfig(workflowTitle);
@@ -703,13 +806,19 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         SubnodeConfiguration myconfig = null;
         try {
-
-            myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");
+            myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");            
         } catch (IllegalArgumentException e) {
             myconfig = xmlConfig.configurationAt("//config[./template = '*']");
         }
+        
+        if (myconfig != null) {
+            replaceExisting = myconfig.getBoolean("replaceExistingProcesses", false);
+            moveFiles = myconfig.getBoolean("moveFiles", false);
+        }
+        
         Config config = new Config(myconfig);
 
+        
         return config;
     }
 
