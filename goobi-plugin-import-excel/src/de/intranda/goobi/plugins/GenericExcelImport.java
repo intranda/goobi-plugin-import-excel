@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +45,7 @@ import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
 import org.goobi.production.properties.ImportProperty;
 
-import de.intranda.goobi.plugins.util.Config;
+import de.intranda.goobi.plugins.util.ExcelConfig;
 import de.intranda.goobi.plugins.util.GroupMappingObject;
 import de.intranda.goobi.plugins.util.MetadataMappingObject;
 import de.intranda.goobi.plugins.util.PersonMappingObject;
@@ -94,16 +96,16 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private boolean replaceExisting = false;
     private boolean moveFiles = false;
-    
+
     private String title = "intranda_import_excel";
 
     //    private Map<String, Integer> headerOrder;
 
     private List<ImportType> importTypes;
     private String workflowTitle;
-    
+
     @EqualsAndHashCode.Exclude
-    private Config config;
+    private ExcelConfig config;
 
     public GenericExcelImport() {
         importTypes = new ArrayList<>();
@@ -119,7 +121,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     public void setData(Record r) {
     }
 
-    private Fileformat getRecordFromCatalogue(String identifier, String catalogue) throws ImportPluginException {
+    private Fileformat getRecordFromCatalogue(Map<Integer, String> rowMap, Map<String, Integer> headerOrder, String catalogue)
+            throws ImportPluginException {
         IOpacPlugin myImportOpac = null;
         ConfigOpacCatalogue coc = null;
         for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues()) {
@@ -132,31 +135,106 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             throw new ImportPluginException("Opac plugin for catalogue " + catalogue + " not found. Abort.");
         }
         Fileformat myRdf = null;
-        try {
-            myRdf = myImportOpac.search(config.getSearchField(), identifier, coc, prefs);
-            if (myRdf == null) {
+        DocStruct ds = null;
+        if (myImportOpac.getTitle().equals("intranda_opac_json")) {
+
+            /**
+             * 
+             *           JsonOpacPlugin jsonOpacPlugin = (JsonOpacPlugin) myImportOpac;
+             *           de.intranda.goobi.plugins.util.Config jsonOpacConfig = jsonOpacPlugin.getConfigForOpac();
+             *           for (MetadataMappingObject mmo : config.getMetadataList()) {
+             *               if (StringUtils.isNotBlank(mmo.getSearchField())) {
+             *                   for (SearchField sf : jsonOpacConfig.getFieldList()) {
+             *                       if ((sf.getId()).equals(mmo.getSearchField())) {
+             *                           String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
+             *                           if (StringUtils.isNotBlank(value)) {
+             *                               sf.setText(value);
+             *                               sf.setSelectedField(mmo.getHeaderName());
+             *                           }
+             *                       }
+             *                   }
+             *               }
+             *           }
+             * 
+             * Direct access to the classes is not possible because of different class loaders.
+             * Replace code above with reflections:
+             */
+
+            try {
+                Class<? extends Object> opacClass = myImportOpac.getClass();
+                Method getConfigForOpac = opacClass.getMethod("getConfigForOpac");
+                Object jsonOpacConfig = getConfigForOpac.invoke(myImportOpac);
+
+                Class<? extends Object> jsonOpacConfigClass = jsonOpacConfig.getClass();
+
+                Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
+
+                Object fieldList = getFieldList.invoke(jsonOpacConfig);
+                List<Object> searchfields =  (List<Object>) fieldList;
+                for (MetadataMappingObject mmo : config.getMetadataList()) {
+                    if (StringUtils.isNotBlank(mmo.getSearchField())) {
+                        for (Object searchField : searchfields) {
+                            Class<? extends Object> searchFieldClass = searchField.getClass();
+
+                            Method getId = searchFieldClass.getMethod("getId");
+
+                            Method setText = searchFieldClass.getMethod("setText", String.class);
+                            Method setSelectedField = searchFieldClass.getMethod("setSelectedField", String.class);
+
+                            Object id = getId.invoke(searchField);
+                            if (((String) id).equals(mmo.getSearchField())) {
+                                String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
+                                if (StringUtils.isNotBlank(value)) {
+                                    setText.invoke(searchField, value);
+                                    setSelectedField.invoke(searchField, mmo.getHeaderName());
+                                }
+                            }
+                        }
+                    }
+                }
+                Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
+
+                myRdf = (Fileformat)  search.invoke(myImportOpac, "","",coc, prefs);
+                try {
+
+                    ds = myRdf.getDigitalDocument().getLogicalDocStruct();
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                return null;
+            }
+
+
+
+
+        } else {
+            String identifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
+            try {
+
+                myRdf = myImportOpac.search(config.getSearchField(), identifier, coc, prefs);
+                if (myRdf == null) {
+                    throw new ImportPluginException("Could not import record " + identifier
+                            + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+                }
+            } catch (Exception e1) {
                 throw new ImportPluginException("Could not import record " + identifier
                         + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
             }
-        } catch (Exception e1) {
-            throw new ImportPluginException("Could not import record " + identifier
-                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
-        }
-        DocStruct ds = null;
-        DocStruct anchor = null;
-        try {
-            ds = myRdf.getDigitalDocument().getLogicalDocStruct();
-            if (ds.getType().isAnchor()) {
-                anchor = ds;
-                if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
-                    throw new ImportPluginException(
-                            "Could not import record " + identifier + ". Found anchor file, but no children. Try to import the child record.");
+
+            try {
+                ds = myRdf.getDigitalDocument().getLogicalDocStruct();
+                if (ds.getType().isAnchor()) {
+                    if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
+                        throw new ImportPluginException(
+                                "Could not import record " + identifier + ". Found anchor file, but no children. Try to import the child record.");
+                    }
+                    ds = ds.getAllChildren().get(0);
                 }
-                ds = ds.getAllChildren().get(0);
+            } catch (PreferencesException e1) {
+                throw new ImportPluginException("Could not import record " + identifier
+                        + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
             }
-        } catch (PreferencesException e1) {
-            throw new ImportPluginException("Could not import record " + identifier
-                    + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
         }
         try {
             ats = myImportOpac.getAtstsl();
@@ -173,7 +251,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return myRdf;
     }
 
-
     @SuppressWarnings("unchecked")
     @Override
     public List<ImportObject> generateFiles(List<Record> records) {
@@ -185,9 +262,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             config = getConfig();
         }
 
-
         for (Record record : records) {
-        	String timestamp = Long.toString(System.currentTimeMillis());
+            String timestamp = Long.toString(System.currentTimeMillis());
             ImportObject io = new ImportObject();
             answer.add(io);
             try {
@@ -213,27 +289,40 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     digitalDocument.setLogicalDocStruct(logical);
                 } else {
                     try {
-                        if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
-                            Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
-                            log.error("Cannot request catalogue, no identifier column defined");
-                            return Collections.emptyList();
+                        boolean validRequest = false;
+                        for (MetadataMappingObject mmo : config.getMetadataList()) {
+                            if (StringUtils.isNotBlank(mmo.getSearchField()) && headerOrder.get(mmo.getHeaderName()) != null) {
+                                validRequest = true;
+                                break;
+                            }
                         }
-                        Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
-                        if (columnNumber == null) {
-                            Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName() + "' not found in excel file.");
-                            log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName() + "' not found in excel file.");
-                            return Collections.emptyList();
-                        }
-                        String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
-                        if (StringUtils.isBlank(catalogueIdentifier)) {
-                            continue;
+
+                        if (!validRequest) {
+                            if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
+                                Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
+                                log.error("Cannot request catalogue, no identifier column defined");
+                                return Collections.emptyList();
+                            }
+
+                            Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
+                            if (columnNumber == null) {
+                                Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
+                                + "' not found in excel file.");
+                                log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
+                                + "' not found in excel file.");
+                                return Collections.emptyList();
+                            }
+                            String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
+                            if (StringUtils.isBlank(catalogueIdentifier)) {
+                                continue;
+                            }
                         }
 
                         String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
                         if (StringUtils.isBlank(catalogue)) {
                             catalogue = config.getOpacName();
                         }
-                        ff = getRecordFromCatalogue(catalogueIdentifier, catalogue);
+                        ff = getRecordFromCatalogue(rowMap, headerOrder, catalogue);
                         digitalDocument = ff.getDigitalDocument();
                         logical = digitalDocument.getLogicalDocStruct();
                         if (logical.getType().isAnchor()) {
@@ -326,10 +415,12 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                         title.append(
                                                 rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                     }
-                                } if (myString.equalsIgnoreCase("timestamp")) {
+                                }
+                                if (myString.equalsIgnoreCase("timestamp")) {
                                     title.append(timestamp);
                                 } else {
-                                    title.append(rowMap.get(headerOrder.get(myString)));
+                                    String s =rowMap.get(headerOrder.get(myString));
+                                    title.append(s != null ? s : "");
                                 }
 
                             }
@@ -487,7 +578,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             Files.createDirectories(path.getParent());
                             if (config.isMoveImage()) {
                                 StorageProvider.getInstance().move(imageSourceFolder, path);
-                            }else {
+                            } else {
                                 StorageProvider.getInstance().copyDirectory(imageSourceFolder, path);
                             }
                         } catch (IOException e) {
@@ -496,8 +587,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                     }
                 }
-                
-                
+
                 // check if the process exists
                 if (replaceExisting) {
                     boolean dataReplaced = false;
@@ -519,7 +609,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         continue;
                     }
                 }
-                
+
             } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());
@@ -530,7 +620,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return answer;
     }
 
-    
     private void moveImageIntoProcessFolder(Process existingProcess, Path sourceRootFolder) {
         if (StorageProvider.getInstance().isFileExists(sourceRootFolder)) {
             Path sourceImageFolder = Paths.get(sourceRootFolder.toString(), "images");
@@ -577,7 +666,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             }
         }
     }
-    
+
     private void copyFile(Path file, Path destination) throws IOException {
 
         if (moveFiles) {
@@ -587,8 +676,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
 
     }
-    
-    
+
     @Override
     public List<Record> splitRecords(String records) {
         return null;
@@ -772,18 +860,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public boolean isRunnableAsGoobiScript() {
-    	return config.isRunAsGoobiScript();
+        return config.isRunAsGoobiScript();
     }
 
-//    @Override 
-//    public int hashCode(){
-//        
-//        //this is a random number, to prevent lombok from calling getConfig every time it wants a hash.
-//        return 4589689;  
-//    }
-    
+    //    @Override
+    //    public int hashCode(){
+    //
+    //        //this is a random number, to prevent lombok from calling getConfig every time it wants a hash.
+    //        return 4589689;
+    //    }
 
-    public Config getConfig() {
+    public ExcelConfig getConfig() {
         if (config == null) {
             config = loadConfig(workflowTitle);
         }
@@ -793,33 +880,56 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     /**
      * Loads the configuration for the selected template or the default configuration, if the template was not specified.
      * 
-     * The configuration is stored in a {@link Config} object
+     * The configuration is stored in a {@link ExcelConfig} object
      * 
      * @param workflowTitle
      * @return
      */
 
-    private Config loadConfig(String workflowTitle) {
+    private ExcelConfig loadConfig(String workflowTitle) {
         XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(title);
         xmlConfig.setExpressionEngine(new XPathExpressionEngine());
         xmlConfig.setReloadingStrategy(new FileChangedReloadingStrategy());
 
         SubnodeConfiguration myconfig = null;
         try {
-            myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");            
+            myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");
         } catch (IllegalArgumentException e) {
             myconfig = xmlConfig.configurationAt("//config[./template = '*']");
         }
-        
+
         if (myconfig != null) {
             replaceExisting = myconfig.getBoolean("replaceExistingProcesses", false);
             moveFiles = myconfig.getBoolean("moveFiles", false);
         }
-        
-        Config config = new Config(myconfig);
 
-        
+        ExcelConfig config = new ExcelConfig(myconfig);
+
         return config;
     }
 
+    //    this.co = ConfigOpac.getInstance().getAllCatalogues();
+    //
+    //
+    //    public void setOpacKatalog(String opacKatalog) {
+    //        if (!this.opacKatalog.equals(opacKatalog)) {
+    //            this.opacKatalog = opacKatalog;
+    //            currentCatalogue = null;
+    //            for (ConfigOpacCatalogue catalogue : catalogues) {
+    //                if (opacKatalog.equals(catalogue.getTitle())) {
+    //                    currentCatalogue = catalogue;
+    //                    break;
+    //                }
+    //            }
+    //
+    //            if (currentCatalogue == null) {
+    //                // get first catalogue in case configured catalogue doesn't exist
+    //                currentCatalogue = catalogues.get(0);
+    //            }
+    //            if (currentCatalogue != null) {
+    //                currentCatalogue.getOpacPlugin().setTemplateName(prozessVorlage.getTitel());
+    //                currentCatalogue.getOpacPlugin().setProjectName(prozessVorlage.getProjekt().getTitel());
+    //            }
+    //        }
+    //    }
 }

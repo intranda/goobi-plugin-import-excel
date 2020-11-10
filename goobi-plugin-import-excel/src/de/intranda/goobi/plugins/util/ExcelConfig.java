@@ -9,7 +9,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import lombok.Data;
 
 @Data
-public class Config {
+public class ExcelConfig {
 
     private String publicationType;
     private String collection;
@@ -44,7 +44,7 @@ public class Config {
      * @param xmlConfig
      */
 
-    public Config(SubnodeConfiguration xmlConfig) {
+    public ExcelConfig(SubnodeConfiguration xmlConfig) {
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
         collection = xmlConfig.getString("/collection", "");
@@ -124,6 +124,8 @@ public class Config {
         mmo.setHeaderName(headerName);
         mmo.setNormdataHeaderName(normdataHeaderName);
         mmo.setDocType(docType);
+
+        mmo.setSearchField(md.getString("@opacSearchField", null));
         return mmo;
     }
 
