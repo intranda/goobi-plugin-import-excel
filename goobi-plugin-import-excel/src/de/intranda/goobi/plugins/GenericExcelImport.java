@@ -94,7 +94,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     private String volumeNumber;
     private String processTitle;
 
+    @EqualsAndHashCode.Exclude
     private boolean replaceExisting = false;
+    @EqualsAndHashCode.Exclude
     private boolean moveFiles = false;
 
     private String title = "intranda_import_excel";
