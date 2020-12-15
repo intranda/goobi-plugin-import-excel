@@ -575,7 +575,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                         // folder name
                         String foldername = fileName.replace(".xml", "");
-                        Path path = Paths.get(foldername, "images", io.getProcessTitle() + "_master");
+
+                        String folderNameRule = ConfigurationHelper.getInstance().getProcessImagesMasterDirectoryName();
+                        folderNameRule=folderNameRule.replace("{processtitle}", io.getProcessTitle());
+
+                        Path path = Paths.get(foldername, "images", folderNameRule);
                         try {
                             Files.createDirectories(path.getParent());
                             if (config.isMoveImage()) {
