@@ -760,7 +760,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             value = cell.getRichStringCellValue().getString();
                             break;
                         case NUMERIC:
-                            value = String.valueOf((int) cell.getNumericCellValue());
+                            value = String.valueOf((long) cell.getNumericCellValue());
                             break;
                         case STRING:
                             value = cell.getStringCellValue();
