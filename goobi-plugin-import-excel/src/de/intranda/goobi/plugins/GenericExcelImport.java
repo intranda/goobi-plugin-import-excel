@@ -418,7 +418,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                                 rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                     }
                                 }
-                                if (myString.equalsIgnoreCase("timestamp")) {
+                                else if (myString.equalsIgnoreCase("timestamp")) {
                                     title.append(timestamp);
                                 } else {
                                     String s =rowMap.get(headerOrder.get(myString));
