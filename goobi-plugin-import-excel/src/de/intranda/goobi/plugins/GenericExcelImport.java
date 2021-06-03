@@ -751,7 +751,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     //                    Cell cell = cellIterator.next();
                     Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
                     String value = "";
-                    switch (cell.getCellTypeEnum()) {
+                    switch (cell.getCellType()) {
                         case BOOLEAN:
                             value = cell.getBooleanCellValue() ? "true" : "false";
                             break;
