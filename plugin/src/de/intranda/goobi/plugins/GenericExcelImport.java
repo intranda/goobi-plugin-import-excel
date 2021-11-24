@@ -886,7 +886,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         try {
             myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");
         } catch (IllegalArgumentException e) {
-            myconfig = xmlConfig.configurationAt("//config[./template = '*']");
+            try {
+                myconfig = xmlConfig.configurationAt("//config[./template = '*']");
+            } catch (IllegalArgumentException e1) {
+                log.error("Excel import plugin: Could not read configuration. At least one <config> block with <template>*</template> is needed.");
+            }
         }
 
         if (myconfig != null) {

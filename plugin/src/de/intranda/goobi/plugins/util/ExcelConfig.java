@@ -37,7 +37,6 @@ public class ExcelConfig {
     private boolean moveImage;
     private boolean runAsGoobiScript;
 
-
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -45,6 +44,9 @@ public class ExcelConfig {
      */
 
     public ExcelConfig(SubnodeConfiguration xmlConfig) {
+        if (xmlConfig == null) {
+            return;
+        }
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
         collection = xmlConfig.getString("/collection", "");
@@ -114,7 +116,6 @@ public class ExcelConfig {
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
-
 
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
