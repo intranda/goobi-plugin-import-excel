@@ -38,7 +38,8 @@ public class ExcelConfig {
     private boolean ignoreImages;
     private boolean moveImage;
     private boolean runAsGoobiScript;
-    private String imageHandlingStrategy;  //copy, move or ignore
+
+    private String imageHandlingStrategy; //copy, move or ignore
     private boolean failOnMissingImageFiles = false;
 
     /**
@@ -48,6 +49,9 @@ public class ExcelConfig {
      */
 
     public ExcelConfig(SubnodeConfiguration xmlConfig) {
+        if (xmlConfig == null) {
+            return;
+        }
 
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
         collection = xmlConfig.getString("/collection", "");
@@ -65,8 +69,8 @@ public class ExcelConfig {
 
         for (HierarchicalConfiguration md : iml) {
 
-            List<ConfigurationNode> attr= md.getRootNode().getAttributes("failOnMissingImageFiles");
-            
+            List<ConfigurationNode> attr = md.getRootNode().getAttributes("failOnMissingImageFiles");
+
             if (attr != null && attr.size() > 0) {
                 failOnMissingImageFiles = attr.get(0).getValue().toString().contentEquals("true");
             }

@@ -127,7 +127,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             throws ImportPluginException {
         IOpacPlugin myImportOpac = null;
         ConfigOpacCatalogue coc = null;
-        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues()) {
+        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues(workflowTitle)) {
             if (configOpacCatalogue.getTitle().equals(catalogue)) {
                 myImportOpac = configOpacCatalogue.getOpacPlugin();
                 coc = configOpacCatalogue;
@@ -142,24 +142,13 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
             /**
              * 
-             *           JsonOpacPlugin jsonOpacPlugin = (JsonOpacPlugin) myImportOpac;
-             *           de.intranda.goobi.plugins.util.Config jsonOpacConfig = jsonOpacPlugin.getConfigForOpac();
-             *           for (MetadataMappingObject mmo : config.getMetadataList()) {
-             *               if (StringUtils.isNotBlank(mmo.getSearchField())) {
-             *                   for (SearchField sf : jsonOpacConfig.getFieldList()) {
-             *                       if ((sf.getId()).equals(mmo.getSearchField())) {
-             *                           String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
-             *                           if (StringUtils.isNotBlank(value)) {
-             *                               sf.setText(value);
-             *                               sf.setSelectedField(mmo.getHeaderName());
-             *                           }
-             *                       }
-             *                   }
-             *               }
-             *           }
+             * JsonOpacPlugin jsonOpacPlugin = (JsonOpacPlugin) myImportOpac; de.intranda.goobi.plugins.util.Config jsonOpacConfig =
+             * jsonOpacPlugin.getConfigForOpac(); for (MetadataMappingObject mmo : config.getMetadataList()) { if
+             * (StringUtils.isNotBlank(mmo.getSearchField())) { for (SearchField sf : jsonOpacConfig.getFieldList()) { if
+             * ((sf.getId()).equals(mmo.getSearchField())) { String value = rowMap.get(headerOrder.get(mmo.getHeaderName())); if
+             * (StringUtils.isNotBlank(value)) { sf.setText(value); sf.setSelectedField(mmo.getHeaderName()); } } } } }
              * 
-             * Direct access to the classes is not possible because of different class loaders.
-             * Replace code above with reflections:
+             * Direct access to the classes is not possible because of different class loaders. Replace code above with reflections:
              */
 
             try {
@@ -172,7 +161,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
 
                 Object fieldList = getFieldList.invoke(jsonOpacConfig);
-                List<Object> searchfields =  (List<Object>) fieldList;
+                List<Object> searchfields = (List<Object>) fieldList;
                 for (MetadataMappingObject mmo : config.getMetadataList()) {
                     if (StringUtils.isNotBlank(mmo.getSearchField())) {
                         for (Object searchField : searchfields) {
@@ -196,7 +185,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 }
                 Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
 
-                myRdf = (Fileformat)  search.invoke(myImportOpac, "","",coc, prefs);
+                myRdf = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
                 try {
 
                     ds = myRdf.getDigitalDocument().getLogicalDocStruct();
@@ -206,9 +195,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 return null;
             }
-
-
-
 
         } else {
             String identifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
@@ -309,9 +295,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
                             if (columnNumber == null) {
                                 Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
+                                        + "' not found in excel file.");
                                 log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
+                                        + "' not found in excel file.");
                                 return Collections.emptyList();
                             }
                             String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
@@ -417,11 +403,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                         title.append(
                                                 rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                     }
-                                }
-                                if (myString.equalsIgnoreCase("timestamp")) {
+                                } else if (myString.equalsIgnoreCase("timestamp")) {
                                     title.append(timestamp);
                                 } else {
-                                    String s =rowMap.get(headerOrder.get(myString));
+                                    String s = rowMap.get(headerOrder.get(myString));
                                     title.append(s != null ? s : "");
                                 }
 
@@ -577,7 +562,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         String foldername = fileName.replace(".xml", "");
 
                         String folderNameRule = ConfigurationHelper.getInstance().getProcessImagesMasterDirectoryName();
-                        folderNameRule=folderNameRule.replace("{processtitle}", io.getProcessTitle());
+                        folderNameRule = folderNameRule.replace("{processtitle}", io.getProcessTitle());
 
                         Path path = Paths.get(foldername, "images", folderNameRule);
                         try {
@@ -594,13 +579,13 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                 io.setErrorMessage(e.getMessage());
                             }
                         }
+
                     } else if (config.isFailOnMissingImageFiles()) {
                         io.setImportReturnValue(ImportReturnValue.InvalidData);
                         io.setErrorMessage("Missing images in " + imageSourceFolder);
-                    } else {                      
+                    } else {
                         log.info("Missing images in " + imageSourceFolder);
                     }
-                        
                 }
 
                 // check if the process exists
@@ -760,7 +745,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     //                    Cell cell = cellIterator.next();
                     Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
                     String value = "";
-                    switch (cell.getCellTypeEnum()) {
+                    switch (cell.getCellType()) {
                         case BOOLEAN:
                             value = cell.getBooleanCellValue() ? "true" : "false";
                             break;
@@ -910,7 +895,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         try {
             myconfig = xmlConfig.configurationAt("//config[./template = '" + workflowTitle + "']");
         } catch (IllegalArgumentException e) {
-            myconfig = xmlConfig.configurationAt("//config[./template = '*']");
+            try {
+                myconfig = xmlConfig.configurationAt("//config[./template = '*']");
+            } catch (IllegalArgumentException e1) {
+                log.error("Excel import plugin: Could not read configuration. At least one <config> block with <template>*</template> is needed.");
+            }
         }
 
         if (myconfig != null) {
