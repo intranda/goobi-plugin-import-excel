@@ -574,8 +574,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             }
                         } catch (IOException e) {
                             log.error(e);
+                            if (config.isFailOnMissingImageFiles()) {
+                                io.setImportReturnValue(ImportReturnValue.WriteError);
+                                io.setErrorMessage(e.getMessage());
+                            }
                         }
 
+                    } else if (config.isFailOnMissingImageFiles()) {
+                        io.setImportReturnValue(ImportReturnValue.InvalidData);
+                        io.setErrorMessage("Missing images in " + imageSourceFolder);
+                    } else {
+                        log.info("Missing images in " + imageSourceFolder);
                     }
                 }
 
