@@ -54,7 +54,6 @@ import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
 import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.persistence.managers.ProcessManager;
@@ -295,9 +294,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
                             if (columnNumber == null) {
                                 Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                        + "' not found in excel file.");
+                                + "' not found in excel file.");
                                 log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                        + "' not found in excel file.");
+                                + "' not found in excel file.");
                                 return Collections.emptyList();
                             }
                             String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
@@ -596,7 +595,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         try {
                             existingProcess.writeMetadataFile(ff);
                             dataReplaced = true;
-                        } catch (WriteException | PreferencesException | IOException | InterruptedException | SwapException | DAOException e) {
+                        } catch (WriteException | PreferencesException | IOException | SwapException e) {
                             log.error(e);
                         }
 
@@ -631,14 +630,14 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     if (Files.isDirectory(currentData)) {
                         try {
                             FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getImagesDirectory()).toFile());
-                        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+                        } catch (IOException | SwapException e) {
                             log.error(e);
                         }
                     } else {
                         try {
                             FileUtils.copyFile(currentData.toFile(),
                                     Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()).toFile());
-                        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+                        } catch (IOException | SwapException e) {
                             log.error(e);
                         }
                     }
@@ -652,13 +651,13 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     if (Files.isRegularFile(currentData)) {
                         try {
                             copyFile(currentData, Paths.get(existingProcess.getOcrDirectory(), currentData.getFileName().toString()));
-                        } catch (IOException | SwapException | DAOException | InterruptedException e) {
+                        } catch (IOException | SwapException e) {
                             log.error(e);
                         }
                     } else {
                         try {
                             FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getOcrDirectory()).toFile());
-                        } catch (IOException | SwapException | DAOException | InterruptedException e) {
+                        } catch (IOException | SwapException e) {
                             log.error(e);
                         }
                     }
