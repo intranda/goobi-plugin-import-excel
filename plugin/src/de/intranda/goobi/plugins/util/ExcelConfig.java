@@ -22,7 +22,9 @@ public class ExcelConfig {
     private int rowDataEnd;
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
+    private List<PersonMappingObject> personWithRoleList = new ArrayList<>();    
     private List<GroupMappingObject> groupList = new ArrayList<>();
+    private String roleField;
     private String identifierHeaderName;
 
     private boolean useOpac = false;
@@ -34,10 +36,12 @@ public class ExcelConfig {
 
     private String imageFolderPath;
     private String imageFolderHeaderName;
+    private String listSplitChar;
 
     private boolean ignoreImages;
     private boolean moveImage;
     private boolean runAsGoobiScript;
+    private List<MetadataMappingObject> rolesList = new ArrayList<>();
 
     private String imageHandlingStrategy; //copy, move or ignore
     private boolean failOnMissingImageFiles = false;
@@ -88,15 +92,29 @@ public class ExcelConfig {
         }
 
         runAsGoobiScript = xmlConfig.getBoolean("/runAsGoobiScript", true);
-
+        listSplitChar = xmlConfig.getString("/splitList", null);
+        
+        roleField = xmlConfig.getString("/roleField", null);
+        
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
             metadataList.add(getMetadata(md));
         }
+        
+        List<HierarchicalConfiguration> mmr = xmlConfig.configurationsAt("//role");
+        for (HierarchicalConfiguration md : mmr) {
+            rolesList.add(getRoleMetadata(md));
+        }
 
+       
         List<HierarchicalConfiguration> pml = xmlConfig.configurationsAt("//person");
         for (HierarchicalConfiguration md : pml) {
             personList.add(getPersons(md));
+        }
+        
+        List<HierarchicalConfiguration> pmlr = xmlConfig.configurationsAt("//person-role");
+        for (HierarchicalConfiguration md : pmlr) {
+            personWithRoleList.add(getPersonsWithRoles(md));
         }
 
         List<HierarchicalConfiguration> gml = xmlConfig.configurationsAt("//group");
@@ -152,6 +170,18 @@ public class ExcelConfig {
         return mmo;
     }
 
+    private MetadataMappingObject getRoleMetadata(HierarchicalConfiguration md) {
+        String rulesetName = md.getString("@ugh");
+        String propertyName = md.getString("@roleName");
+        String docType = md.getString("@docType", "child");
+
+        MetadataMappingObject mmo = new MetadataMappingObject();
+        mmo.setPropertyName(propertyName);
+        mmo.setRulesetName(rulesetName);
+        mmo.setDocType(docType);
+        return mmo;
+    }
+    
     private PersonMappingObject getPersons(HierarchicalConfiguration md) {
         String rulesetName = md.getString("@ugh");
         Integer firstname = md.getInteger("firstname", null);
@@ -164,7 +194,11 @@ public class ExcelConfig {
         boolean splitName = md.getBoolean("splitName", false);
         String splitChar = md.getString("splitChar", " ");
         boolean firstNameIsFirstPart = md.getBoolean("splitName/@firstNameIsFirstPart", false);
+        String splitList = md.getString("splitList", null);
+        String gndIds = md.getString("gndIds", null);
+        
         String docType = md.getString("@docType", "child");
+        String useRoleField =  md.getString("useRoleField", null);
 
         PersonMappingObject pmo = new PersonMappingObject();
         pmo.setFirstnameColumn(firstname);
@@ -180,8 +214,53 @@ public class ExcelConfig {
         pmo.setSplitName(splitName);
         pmo.setFirstNameIsFirst(firstNameIsFirstPart);
         pmo.setDocType(docType);
+
+        pmo.setSplitList(splitList);
+        pmo.setGndIds(gndIds);
+        pmo.setUseRoleField(useRoleField);
+        
         return pmo;
 
     }
 
+    private PersonMappingObject getPersonsWithRoles(HierarchicalConfiguration md) {
+        String rulesetName = md.getString("@ugh");
+        Integer firstname = md.getInteger("firstname", null);
+        Integer lastname = md.getInteger("lastname", null);
+        Integer identifier = md.getInteger("identifier", null);
+        String headerName = md.getString("nameFieldHeader", null);
+        String firstnameHeaderName = md.getString("firstnameFieldHeader", null);
+        String lastnameHeaderName = md.getString("lastnameFieldHeader", null);
+        String normdataHeaderName = md.getString("@normdataHeaderName", null);
+        boolean splitName = md.getBoolean("splitName", false);
+        String splitChar = md.getString("splitChar", " ");
+        boolean firstNameIsFirstPart = md.getBoolean("splitName/@firstNameIsFirstPart", false);
+        String splitList = md.getString("splitList", null);
+        String splitRole = md.getString("splitRole", null);
+        String gndIds = md.getString("gndIds", null);
+        
+        String docType = md.getString("@docType", "child");
+        
+        PersonMappingObject pmo = new PersonMappingObject();
+        pmo.setFirstnameColumn(firstname);
+        pmo.setLastnameColumn(lastname);
+        pmo.setIdentifierColumn(identifier);
+        pmo.setRulesetName(rulesetName);
+        pmo.setHeaderName(headerName);
+        pmo.setNormdataHeaderName(normdataHeaderName);
+
+        pmo.setFirstnameHeaderName(firstnameHeaderName);
+        pmo.setLastnameHeaderName(lastnameHeaderName);
+        pmo.setSplitChar(splitChar);
+        pmo.setSplitName(splitName);
+        pmo.setSplitRole(splitRole);
+        pmo.setFirstNameIsFirst(firstNameIsFirstPart);
+        pmo.setDocType(docType);
+
+        pmo.setSplitList(splitList);
+        pmo.setGndIds(gndIds);
+        
+        return pmo;
+
+    }
 }

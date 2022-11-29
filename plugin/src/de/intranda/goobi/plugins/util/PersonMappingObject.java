@@ -19,5 +19,10 @@ public class PersonMappingObject {
     private String splitChar;
     private boolean firstNameIsFirst;
 
+    private String gndIds;
+    private String splitList;
+    private String splitRole;
+    
     private String docType;
+    private String useRoleField;
 }

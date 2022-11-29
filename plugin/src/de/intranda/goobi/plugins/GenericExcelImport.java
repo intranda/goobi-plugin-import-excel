@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -82,6 +84,8 @@ import ugh.fileformats.mets.MetsMods;
 @PluginImplementation
 public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
+    private static final long serialVersionUID = 3965077868027995218L;
+
     private Prefs prefs;
     private MassImportForm form;
     private String importFolder;
@@ -100,17 +104,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private String title = "intranda_import_excel";
 
-    //    private Map<String, Integer> headerOrder;
-
     private List<ImportType> importTypes;
     private String workflowTitle;
 
     @EqualsAndHashCode.Exclude
-    private ExcelConfig config;
+    private transient ExcelConfig config;
 
     public GenericExcelImport() {
         importTypes = new ArrayList<>();
         importTypes.add(ImportType.FILE);
+
+        getConfig();
     }
 
     @Override
@@ -120,6 +124,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public void setData(Record r) {
+        // do nothing
     }
 
     private Fileformat getRecordFromCatalogue(Map<Integer, String> rowMap, Map<String, Integer> headerOrder, String catalogue)
@@ -160,6 +165,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
 
                 Object fieldList = getFieldList.invoke(jsonOpacConfig);
+                @SuppressWarnings("unchecked")
                 List<Object> searchfields = (List<Object>) fieldList;
                 for (MetadataMappingObject mmo : config.getMetadataList()) {
                     if (StringUtils.isNotBlank(mmo.getSearchField())) {
@@ -185,8 +191,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
 
                 myRdf = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
-                try {
-
+                try { //NOSONAR
                     ds = myRdf.getDigitalDocument().getLogicalDocStruct();
                 } catch (Exception e) {
                     log.error(e);
@@ -225,12 +230,12 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         try {
             ats = myImportOpac.getAtstsl();
-
-            List<? extends Metadata> sort = ds.getAllMetadataByType(prefs.getMetadataTypeByName("CurrentNoSorting"));
-            if (sort != null && !sort.isEmpty()) {
-                volumeNumber = sort.get(0).getValue();
+            if (ds != null) {
+                List<? extends Metadata> sort = ds.getAllMetadataByType(prefs.getMetadataTypeByName("CurrentNoSorting"));
+                if (sort != null && !sort.isEmpty()) {
+                    volumeNumber = sort.get(0).getValue();
+                }
             }
-
         } catch (Exception e) {
             ats = "";
         }
@@ -249,13 +254,13 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             config = getConfig();
         }
 
-        for (Record record : records) {
+        for (Record rec : records) { //NOSONAR
             String timestamp = Long.toString(System.currentTimeMillis());
             ImportObject io = new ImportObject();
             answer.add(io);
             try {
 
-                Object tempObject = record.getObject();
+                Object tempObject = rec.getObject();
 
                 List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
                 Map<String, Integer> headerOrder = (Map<String, Integer>) list.get(0);
@@ -275,7 +280,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     logical = digitalDocument.createDocStruct(logicalType);
                     digitalDocument.setLogicalDocStruct(logical);
                 } else {
-                    try {
+                    try { //NOSONAR
                         boolean validRequest = false;
                         for (MetadataMappingObject mmo : config.getMetadataList()) {
                             if (StringUtils.isNotBlank(mmo.getSearchField()) && headerOrder.get(mmo.getHeaderName()) != null) {
@@ -362,17 +367,21 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         identifier = rowMap.get(headerOrder.get(mmo.getNormdataHeaderName()));
                     }
                     if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
-                        try {
-                            Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
-                            md.setValue(value);
-                            if (identifier != null) {
-                                md.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
+                        try { //NOSONAR
+                            //multiples ?
+                            String strSplitListChar = config.getListSplitChar();
+                            if (strSplitListChar != null && value.contains(strSplitListChar)) {
+                                String[] lstValues = value.split(strSplitListChar);
+                                for (int i = 0; i < lstValues.length; i++) {
+                                    String strVal = lstValues[i];
+                                    if (strVal != null && !strVal.isEmpty()) {
+                                        addMetadata(strVal, identifier, mmo, logical, anchor);
+                                    }
+                                }
 
-                            }
-                            if (anchor != null && "anchor".equals(mmo.getDocType())) {
-                                anchor.addMetadata(md);
                             } else {
-                                logical.addMetadata(md);
+
+                                value = addMetadata(value, identifier, mmo, logical, anchor);
                             }
                         } catch (MetadataTypeNotAllowedException e) {
                             log.info(e);
@@ -435,58 +444,12 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                 }
 
-                for (PersonMappingObject mmo : getConfig().getPersonList()) {
-                    String firstname = "";
-                    String lastname = "";
-                    if (mmo.isSplitName()) {
-                        String name = rowMap.get(headerOrder.get(mmo.getHeaderName()));
-                        if (StringUtils.isNotBlank(name)) {
-                            if (name.contains(mmo.getSplitChar())) {
-                                if (mmo.isFirstNameIsFirst()) {
-                                    firstname = name.substring(0, name.lastIndexOf(mmo.getSplitChar()));
-                                    lastname = name.substring(name.lastIndexOf(mmo.getSplitChar()));
-                                } else {
-                                    lastname = name.substring(0, name.lastIndexOf(mmo.getSplitChar())).trim();
-                                    firstname = name.substring(name.lastIndexOf(mmo.getSplitChar()) + 1).trim();
-                                }
-                            } else {
-                                lastname = name;
-                            }
-                        }
-                    } else {
-                        firstname = rowMap.get(headerOrder.get(mmo.getFirstnameHeaderName()));
-                        lastname = rowMap.get(headerOrder.get(mmo.getLastnameHeaderName()));
-                    }
-
-                    String identifier = null;
-                    if (mmo.getNormdataHeaderName() != null) {
-                        identifier = rowMap.get(headerOrder.get(mmo.getNormdataHeaderName()));
-                    }
-                    if (StringUtils.isNotBlank(mmo.getRulesetName())) {
-                        try {
-                            Person p = new Person(prefs.getMetadataTypeByName(mmo.getRulesetName()));
-                            p.setFirstname(firstname);
-                            p.setLastname(lastname);
-
-                            if (identifier != null) {
-                                p.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
-                            }
-                            if (anchor != null && "anchor".equals(mmo.getDocType())) {
-                                anchor.addPerson(p);
-                            } else {
-                                logical.addPerson(p);
-                            }
-
-                            //                            logical.addPerson(p);
-                        } catch (MetadataTypeNotAllowedException e) {
-                            log.info(e);
-                            // Metadata is not known or not allowed
-                        }
-                    }
+                if (!getPersonsWithRoles(rec, headerOrder, rowMap, logical, anchor)) {
+                    getPersons(rec, headerOrder, rowMap, logical, anchor);
                 }
 
                 for (GroupMappingObject gmo : getConfig().getGroupList()) {
-                    try {
+                    try { //NOSONAR
                         MetadataGroup group = new MetadataGroup(prefs.getMetadataGroupTypeByName(gmo.getRulesetName()));
                         for (MetadataMappingObject mmo : gmo.getMetadataList()) {
                             String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
@@ -498,7 +461,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             group.addMetadata(md);
                         }
                         for (PersonMappingObject pmo : gmo.getPersonList()) {
-                            Person p = new Person(prefs.getMetadataTypeByName(pmo.getRulesetName()));
+
                             String firstname = "";
                             String lastname = "";
                             if (pmo.isSplitName()) {
@@ -513,6 +476,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                             firstname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
                                         }
                                     } else {
+                                        firstname = "";
                                         lastname = name;
                                     }
                                 }
@@ -520,9 +484,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                 firstname = rowMap.get(headerOrder.get(pmo.getFirstnameHeaderName()));
                                 lastname = rowMap.get(headerOrder.get(pmo.getLastnameHeaderName()));
                             }
-
-                            p.setFirstname(firstname);
-                            p.setLastname(lastname);
+                            Person p = makePerson(pmo.getRulesetName(), firstname, lastname);
 
                             if (pmo.getNormdataHeaderName() != null) {
                                 p.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(pmo.getNormdataHeaderName())));
@@ -534,9 +496,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         } else {
                             logical.addMetadataGroup(group);
                         }
-
-                        //                        logical.addMetadataGroup(group);
-
                     } catch (MetadataTypeNotAllowedException e) {
                         log.info(e);
                         // Metadata is not known or not allowed
@@ -599,11 +558,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             log.error(e);
                         }
 
-                        Path sourceRootFolder = Paths.get(record.getData());
+                        Path sourceRootFolder = Paths.get(rec.getData());
                         moveImageIntoProcessFolder(existingProcess, sourceRootFolder);
                     }
                     if (dataReplaced) {
-                        // TODO delete mets file, anchor file, image folder
                         answer.remove(io);
                         continue;
                     }
@@ -617,6 +575,338 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         // end of all excel rows
         return answer;
+    }
+
+    private boolean getPersonsWithRoles(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical,
+            DocStruct anchor) {
+
+        log.info("Get persons with roles");
+
+        Boolean boWithRoles = false;
+        for (PersonMappingObject pmo : getConfig().getPersonWithRoleList()) {
+            String name = "";
+            String firstname = "";
+            String lastname = "";
+            if (pmo.isSplitName()) {
+                name = rowMap.get(headerOrder.get(pmo.getHeaderName()));
+                if (StringUtils.isNotBlank(name)) {
+                    if (name.contains(pmo.getSplitChar())) {
+                        if (pmo.isFirstNameIsFirst()) {
+                            firstname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
+                            lastname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
+                        } else {
+                            lastname = name.substring(0, name.lastIndexOf(pmo.getSplitChar())).trim();
+                            firstname = name.substring(name.lastIndexOf(pmo.getSplitChar()) + 1).trim();
+                        }
+                    } else {
+                        lastname = name;
+                    }
+                }
+            } else {
+                firstname = rowMap.get(headerOrder.get(pmo.getFirstnameHeaderName()));
+                lastname = rowMap.get(headerOrder.get(pmo.getLastnameHeaderName()));
+            }
+
+            log.info(firstname + " " + lastname);
+            log.info(pmo.getRulesetName());
+
+            if (StringUtils.isNotBlank(pmo.getRulesetName())) {
+                try {
+                    //Check if there are multiples:
+                    String separator = pmo.getSplitList();
+                    String roleSeparator = pmo.getSplitRole();
+
+                    if ((StringUtils.isNotBlank(separator) && name.contains(separator))
+                            || (StringUtils.isNotBlank(roleSeparator) && name.contains(roleSeparator))) {
+
+                        boWithRoles = true;
+                        String[] lstEntries = name.split(separator);
+                        String[] lstNames = new String[lstEntries.length];
+                        String[] lstRoles = new String[lstEntries.length];
+
+                        for (int i = 0; i < lstEntries.length; i++) {
+                            log.debug(rec.getId() + " Name/role: " + lstEntries[i]);
+                            lstNames[i] = lstEntries[i].split(roleSeparator)[0];
+                            lstRoles[i] = lstEntries[i].split(roleSeparator)[1];
+                        }
+
+                        for (int i = 0; i < lstNames.length; i++) {
+
+                            //if there is a missing splitter, just add until it is missing
+                            try {
+                                String nameNew = lstNames[i];
+
+                                if (StringUtils.isNotBlank(nameNew)) {
+                                    if (nameNew.contains(pmo.getSplitChar())) {
+                                        if (pmo.isFirstNameIsFirst()) {
+                                            firstname = nameNew.substring(0, nameNew.lastIndexOf(pmo.getSplitChar()));
+                                            lastname = nameNew.substring(nameNew.lastIndexOf(pmo.getSplitChar()));
+                                        } else {
+                                            lastname = nameNew.substring(0, nameNew.lastIndexOf(pmo.getSplitChar())).trim();
+                                            firstname = nameNew.substring(nameNew.lastIndexOf(pmo.getSplitChar()) + 1).trim();
+                                        }
+                                    } else {
+                                        firstname = "";
+                                        lastname = nameNew;
+                                    }
+                                }
+
+                                Person pNew = makePerson(pmo.getRulesetName(), firstname, lastname);
+
+                                if (lstRoles.length > i) {
+                                    String strRole = getRoleName(lstRoles[i]);
+                                    if (strRole != null) {
+                                        pNew.setRole(strRole);
+                                    }
+                                }
+
+                                if (anchor != null && "anchor".equals(pmo.getDocType())) {
+                                    anchor.addPerson(pNew);
+                                } else {
+                                    logical.addPerson(pNew);
+                                }
+                            } catch (ArrayIndexOutOfBoundsException e) {
+                                log.error(rec.getId() + " - Person list is not consistent! " + e.getMessage());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.info(e);
+                    // Metadata is not known or not allowed
+                }
+            }
+        }
+
+        return boWithRoles;
+    }
+
+    //Translate the roles from ecxel entry to Metadata
+    private String getRoleName(String role) {
+
+        for (MetadataMappingObject mmo : getConfig().getRolesList()) {
+
+            if (mmo.getPropertyName().contentEquals(role)) {
+                return mmo.getRulesetName();
+            }
+        }
+
+        return null;
+    }
+
+    private void getPersons(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical, DocStruct anchor) {
+        List<PersonMappingObject> personList = getConfig().getPersonList();
+
+        //are there roles?
+        String[] lstRoles = getRoles(headerOrder, rowMap, personList.size());
+
+        for (int j = 0; j < personList.size(); j++) {
+            PersonMappingObject pmo = personList.get(j);
+
+            String strRole = null;
+            //are there roles?
+            if (lstRoles != null) {
+                strRole = lstRoles[j];
+            }
+
+            String name = "";
+            String firstname = "";
+            String lastname = "";
+            if (pmo.isSplitName()) {
+                name = rowMap.get(headerOrder.get(pmo.getHeaderName()));
+                if (StringUtils.isNotBlank(name)) {
+                    if (name.contains(pmo.getSplitChar())) {
+                        if (pmo.isFirstNameIsFirst()) {
+                            firstname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
+                            lastname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
+                        } else {
+                            lastname = name.substring(0, name.lastIndexOf(pmo.getSplitChar())).trim();
+                            firstname = name.substring(name.lastIndexOf(pmo.getSplitChar()) + 1).trim();
+                        }
+                    } else {
+                        lastname = name;
+                    }
+                }
+            } else {
+                firstname = rowMap.get(headerOrder.get(pmo.getFirstnameHeaderName()));
+                lastname = rowMap.get(headerOrder.get(pmo.getLastnameHeaderName()));
+            }
+
+            String identifier = null;
+            if (pmo.getNormdataHeaderName() != null) {
+                identifier = rowMap.get(headerOrder.get(pmo.getNormdataHeaderName()));
+            }
+            if (StringUtils.isNotBlank(pmo.getRulesetName())) {
+                try {
+                    //Check if there are multiples:
+                    String separator = pmo.getSplitList();
+
+                    if (StringUtils.isNotBlank(separator) && name.contains(separator)) {
+
+                        String[] lstNames = name.split(separator);
+                        String[] lstIds = new String[lstNames.length];
+                        if (pmo.getGndIds() != null && !pmo.getGndIds().isEmpty()) {
+                            lstIds = rowMap.get(headerOrder.get(pmo.getGndIds())).split(separator);
+                        }
+
+                        //roles for this list:
+                        lstRoles = getRoles(headerOrder, rowMap, lstNames.length);
+
+                        for (int i = 0; i < lstNames.length; i++) {
+
+                            //if there is a missing splitter, just add until it is missing
+                            try {
+                                String nameNew = lstNames[i];
+
+                                if (StringUtils.isNotBlank(nameNew)) {
+                                    if (nameNew.contains(pmo.getSplitChar())) {
+                                        if (pmo.isFirstNameIsFirst()) {
+                                            firstname = nameNew.substring(0, nameNew.lastIndexOf(pmo.getSplitChar()));
+                                            lastname = nameNew.substring(nameNew.lastIndexOf(pmo.getSplitChar()));
+                                        } else {
+                                            lastname = nameNew.substring(0, nameNew.lastIndexOf(pmo.getSplitChar())).trim();
+                                            firstname = nameNew.substring(nameNew.lastIndexOf(pmo.getSplitChar()) + 1).trim();
+                                        }
+                                    } else {
+                                        firstname = "";
+                                        lastname = nameNew;
+                                    }
+                                }
+
+                                Person pNew = makePerson(pmo.getRulesetName(), firstname, lastname);
+
+                                if (lstRoles != null) {
+                                    String roleName = getRoleName(lstRoles[i]);
+                                    if (roleName != null) {
+                                        pNew.setRole(roleName);
+                                    }
+                                }
+
+                                if (StringUtils.isNotEmpty(lstIds[i])) {
+                                    pNew.setAutorityFile("gnd", "http://d-nb.info/gnd/", lstIds[i]);
+                                }
+
+                                if (anchor != null && "anchor".equals(pmo.getDocType())) {
+                                    anchor.addPerson(pNew);
+                                } else {
+                                    logical.addPerson(pNew);
+                                }
+                            } catch (ArrayIndexOutOfBoundsException e) {
+                                log.error(rec.getId() + " - Person list is not consistent! " + e.getMessage());
+                            }
+                        }
+
+                    } else {
+                        Person p = makePerson(pmo.getRulesetName(), firstname, lastname);
+
+                        if (strRole != null) {
+                            String roleName = getRoleName(strRole);
+                            if (roleName != null) {
+                                p.setRole(roleName);
+                            }
+                        }
+                        if (identifier != null) {
+                            p.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
+                        }
+
+                        if (anchor != null && "anchor".equals(pmo.getDocType())) {
+                            anchor.addPerson(p);
+                        } else {
+                            logical.addPerson(p);
+                        }
+                    }
+                } catch (MetadataTypeNotAllowedException e) {
+                    log.info(e);
+                    // Metadata is not known or not allowed
+                }
+            }
+        }
+    }
+
+    private String[] getRoles(Map<String, Integer> headerOrder, Map<Integer, String> rowMap, int length) {
+        String[] lstRoles = null;
+        if (getConfig().getRoleField() != null) {
+            String value = rowMap.get(headerOrder.get(getConfig().getRoleField()));
+            //multiples ?
+            String strSplitListChar = config.getListSplitChar();
+            if (strSplitListChar != null && value.contains(strSplitListChar)) {
+                lstRoles = value.split(strSplitListChar);
+            } else {
+                lstRoles = new String[1];
+                lstRoles[0] = value;
+            }
+            //Same number?
+            if (lstRoles.length != length) {
+                lstRoles = null;
+            }
+        }
+        return lstRoles;
+    }
+
+    private String addMetadata(String value, String identifier, MetadataMappingObject mmo, DocStruct logical, DocStruct anchor)
+            throws MetadataTypeNotAllowedException {
+        Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
+
+        value = parseDateIfNecessary(value, md);
+        md.setValue(value);
+        if (identifier != null) {
+            md.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
+
+        }
+        if (anchor != null && "anchor".equals(mmo.getDocType())) {
+            anchor.addMetadata(md);
+        } else {
+            logical.addMetadata(md);
+        }
+        return value;
+    }
+
+    //If the metadatum is a date, pasre the value string to look ok
+    private String parseDateIfNecessary(String value, Metadata md) {
+
+        String strVal = null;
+        if (value.contains("")) {
+            strVal = value.replace("", " ");
+        } else {
+            strVal = value;
+        }
+        String strType = md.getType().getName();
+        if (strType.contentEquals("PublicationYear") || strType.contentEquals("PublicationStart") || strType.contentEquals("PublicationEnd")
+                || strType.contentEquals("datedigit") || strType.contentEquals("dateupdate")) {
+            if (strVal.length() == 8) {
+                //check first 4 chars are the year:
+                int year = Integer.parseInt(strVal.substring(0, 4));
+                if (1600 < year && 2200 > year) {
+                    if (strVal.substring(4, 6).contentEquals("00")) {
+                        strVal = strVal.substring(0, 4);
+                    } else {
+                        strVal = strVal.substring(0, 4) + "/" + strVal.substring(4, 6) + "/" + strVal.substring(6, 8);
+                    }
+                }
+            }
+        }
+
+        return strVal;
+    }
+
+    private Person makePerson(String rulesetName, String firstname, String lastname) throws MetadataTypeNotAllowedException {
+
+        Person p = new Person(prefs.getMetadataTypeByName(rulesetName));
+
+        Matcher m = Pattern.compile("\\((.*?)\\)").matcher(firstname);
+
+        if (m.find()) {
+            String strDates = m.group();
+            String[] lstDates = strDates.split("-");
+            if (lstDates.length == 2) {
+                firstname = firstname.replace(strDates, "");
+                firstname = firstname.replace("()", "");
+            }
+        }
+
+        p.setFirstname(firstname);
+        p.setLastname(lastname);
+
+        return p;
     }
 
     private void moveImageIntoProcessFolder(Process existingProcess, Path sourceRootFolder) {
@@ -693,10 +983,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         Map<String, Integer> headerOrder = new HashMap<>();
 
         InputStream fileInputStream = null;
+        Workbook wb = null;
         try {
             fileInputStream = new FileInputStream(file);
             BOMInputStream in = new BOMInputStream(fileInputStream, false);
-            Workbook wb = WorkbookFactory.create(in);
+            wb = WorkbookFactory.create(in);
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
 
@@ -793,6 +1084,13 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     log.error(e);
                 }
             }
+            if (wb != null) {
+                try {
+                    wb.close();
+                } catch (IOException e) {
+                    log.error(e);
+                }
+            }
         }
 
         return recordList;
@@ -800,32 +1098,32 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public List<Record> generateRecordsFromFilenames(List<String> filenames) {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
     public List<String> splitIds(String ids) {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
     public List<ImportProperty> getProperties() {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
     public List<String> getAllFilenames() {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
     public void deleteFiles(List<String> selectedFilenames) {
-
+        // do nothing
     }
 
     @Override
     public List<? extends DocstructElement> getCurrentDocStructs() {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
@@ -840,7 +1138,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public List<String> getPossibleDocstructs() {
-        return null;
+        return null; //NOSONAR
     }
 
     @Override
@@ -850,6 +1148,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public void setDocstruct(DocstructElement dse) {
+        // do nothing
     }
 
     @Override
@@ -862,13 +1161,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return config.isRunAsGoobiScript();
     }
 
-    //    @Override
-    //    public int hashCode(){
-    //
-    //        //this is a random number, to prevent lombok from calling getConfig every time it wants a hash.
-    //        return 4589689;
-    //    }
-
     public ExcelConfig getConfig() {
         if (config == null) {
             config = loadConfig(workflowTitle);
@@ -879,7 +1171,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     /**
      * Loads the configuration for the selected template or the default configuration, if the template was not specified.
      * 
-     * The configuration is stored in a {@link ExcelConfig} object
+     * The configuration is stored in a {@link Config} object
      * 
      * @param workflowTitle
      * @return
@@ -905,34 +1197,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             replaceExisting = myconfig.getBoolean("replaceExistingProcesses", false);
             moveFiles = myconfig.getBoolean("moveFiles", false);
         }
-
-        ExcelConfig config = new ExcelConfig(myconfig);
-
-        return config;
+        return new ExcelConfig(myconfig);
     }
 
-    //    this.co = ConfigOpac.getInstance().getAllCatalogues();
-    //
-    //
-    //    public void setOpacKatalog(String opacKatalog) {
-    //        if (!this.opacKatalog.equals(opacKatalog)) {
-    //            this.opacKatalog = opacKatalog;
-    //            currentCatalogue = null;
-    //            for (ConfigOpacCatalogue catalogue : catalogues) {
-    //                if (opacKatalog.equals(catalogue.getTitle())) {
-    //                    currentCatalogue = catalogue;
-    //                    break;
-    //                }
-    //            }
-    //
-    //            if (currentCatalogue == null) {
-    //                // get first catalogue in case configured catalogue doesn't exist
-    //                currentCatalogue = catalogues.get(0);
-    //            }
-    //            if (currentCatalogue != null) {
-    //                currentCatalogue.getOpacPlugin().setTemplateName(prozessVorlage.getTitel());
-    //                currentCatalogue.getOpacPlugin().setProjectName(prozessVorlage.getProjekt().getTitel());
-    //            }
-    //        }
-    //    }
 }
