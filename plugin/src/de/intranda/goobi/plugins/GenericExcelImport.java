@@ -350,20 +350,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
                         try { //NOSONAR
                             //multiples ?
-                            String strSplitListChar = config.getListSplitChar();
-                            if (strSplitListChar != null && value.contains(strSplitListChar)) {
-                                String[] lstValues = value.split(strSplitListChar);
-                                for (int i = 0; i < lstValues.length; i++) {
-                                    String strVal = lstValues[i];
-                                    if (strVal != null && !strVal.isEmpty()) {
-                                        addMetadata(strVal, identifier, mmo, logical, anchor);
-                                    }
-                                }
+                            value = performAddMetadata(config, value, identifier, mmo, logical, anchor);
 
-                            } else {
-
-                                value = addMetadata(value, identifier, mmo, logical, anchor);
-                            }
                         } catch (MetadataTypeNotAllowedException e) {
                             log.info(e);
                             // Metadata is not known or not allowed
@@ -376,45 +364,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     }
                     if (StringUtils.isNotBlank(config.getProcesstitleRule())) {
-                        StringBuilder title = new StringBuilder();
-                        StringTokenizer tokenizer = new StringTokenizer(config.getProcesstitleRule(), "+");
-                        while (tokenizer.hasMoreTokens()) {
-                            String myString = tokenizer.nextToken();
-                            /*
-                             * wenn der String mit ' anfängt und mit ' endet, dann den Inhalt so übernehmen
-                             */
-                            if (myString.startsWith("'") && myString.endsWith("'")) {
-                                title.append(myString.substring(1, myString.length() - 1));
-                            } else {
-                                if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
-                                    if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
-                                        // replace white spaces with dash, remove other special characters
-                                        title.append(
-                                                rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
-                                    }
-                                } else if (myString.equalsIgnoreCase("timestamp")) {
-                                    title.append(timestamp);
-                                } else {
-                                    String s = rowMap.get(headerOrder.get(myString));
-                                    title.append(s != null ? s : "");
-                                }
-
-                            }
-                        }
-                        String newTitle = title.toString();
-                        if (newTitle.endsWith("_")) {
-                            newTitle = newTitle.substring(0, newTitle.length() - 1);
-                        }
-                        // remove non-ascii characters for the sake of TIFF header limits
-                        String regex = ConfigurationHelper.getInstance().getProcessTitleReplacementRegex();
-
-                        String filteredTitle = newTitle.replaceAll(regex, "");
-
+                        String filteredTitle = getNewProcessTitle(config, headerOrder, rowMap, timestamp);
                         // set new process title
                         fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
                         io.setProcessTitle(filteredTitle);
                         io.setMetsFilename(fileName);
-
                     }
 
                     if (StringUtils.isNotBlank(mmo.getPropertyName()) && StringUtils.isNotBlank(value)) {
@@ -889,6 +843,25 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return lstRoles;
     }
 
+    private String performAddMetadata(ExcelConfig config, String value, String identifier, MetadataMappingObject mmo, DocStruct logical,
+            DocStruct anchor) throws MetadataTypeNotAllowedException {
+
+        String strSplitListChar = config.getListSplitChar();
+        if (strSplitListChar != null && value.contains(strSplitListChar)) {
+            String[] lstValues = value.split(strSplitListChar);
+            for (int i = 0; i < lstValues.length; i++) {
+                String strVal = lstValues[i];
+                if (strVal != null && !strVal.isEmpty()) {
+                    addMetadata(strVal, identifier, mmo, logical, anchor);
+                }
+            }
+        } else {
+            value = addMetadata(value, identifier, mmo, logical, anchor);
+        }
+
+        return value;
+    }
+    
     private String addMetadata(String value, String identifier, MetadataMappingObject mmo, DocStruct logical, DocStruct anchor)
             throws MetadataTypeNotAllowedException {
         Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
@@ -897,7 +870,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         md.setValue(value);
         if (identifier != null) {
             md.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
-
         }
         if (anchor != null && "anchor".equals(mmo.getDocType())) {
             anchor.addMetadata(md);
@@ -905,6 +877,41 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             logical.addMetadata(md);
         }
         return value;
+    }
+
+    private String getNewProcessTitle(ExcelConfig config, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, String timestamp) {
+        StringBuilder title = new StringBuilder();
+        StringTokenizer tokenizer = new StringTokenizer(config.getProcesstitleRule(), "+");
+        while (tokenizer.hasMoreTokens()) {
+            String myString = tokenizer.nextToken();
+            /*
+             * wenn der String mit ' anfängt und mit ' endet, dann den Inhalt so übernehmen
+             */
+            if (myString.startsWith("'") && myString.endsWith("'")) {
+                title.append(myString.substring(1, myString.length() - 1));
+            } else if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
+
+                if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
+                    // replace white spaces with dash, remove other special characters
+                    title.append(
+                            rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
+                }
+            } else if (myString.equalsIgnoreCase("timestamp")) {
+                title.append(timestamp);
+            } else {
+                String s = rowMap.get(headerOrder.get(myString));
+                title.append(s != null ? s : "");
+            }
+        }
+        String newTitle = title.toString();
+        if (newTitle.endsWith("_")) {
+            newTitle = newTitle.substring(0, newTitle.length() - 1);
+        }
+        // remove non-ascii characters for the sake of TIFF header limits
+        String regex = ConfigurationHelper.getInstance().getProcessTitleReplacementRegex();
+        String filteredTitle = newTitle.replaceAll(regex, "");
+
+        return filteredTitle;
     }
 
     //If the metadatum is a date, pasre the value string to look ok
