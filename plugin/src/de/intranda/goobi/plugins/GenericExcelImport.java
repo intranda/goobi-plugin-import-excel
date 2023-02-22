@@ -281,33 +281,14 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     digitalDocument.setLogicalDocStruct(logical);
                 } else {
                     try { //NOSONAR
-                        boolean validRequest = false;
-                        for (MetadataMappingObject mmo : config.getMetadataList()) {
-                            if (StringUtils.isNotBlank(mmo.getSearchField()) && headerOrder.get(mmo.getHeaderName()) != null) {
-                                validRequest = true;
-                                break;
-                            }
-                        }
-
-                        if (!validRequest) {
-                            if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
-                                Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
-                                log.error("Cannot request catalogue, no identifier column defined");
+                        int control = validateRequest(config, headerOrder, rowMap);
+                        switch (control) {
+                            case 1:
                                 return Collections.emptyList();
-                            }
-
-                            Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
-                            if (columnNumber == null) {
-                                Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
-                                log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
-                                return Collections.emptyList();
-                            }
-                            String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
-                            if (StringUtils.isBlank(catalogueIdentifier)) {
+                            case 2:
                                 continue;
-                            }
+                            default:
+                                // just go on with next steps
                         }
 
                         String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
@@ -575,6 +556,47 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         // end of all excel rows
         return answer;
+    }
+
+    private int validateRequest(ExcelConfig config, Map<String, Integer> headerOrder, Map<Integer, String> rowMap) {
+        boolean validRequest = false;
+        for (MetadataMappingObject mmo : config.getMetadataList()) {
+            if (StringUtils.isNotBlank(mmo.getSearchField()) && headerOrder.get(mmo.getHeaderName()) != null) {
+                validRequest = true;
+                break;
+            }
+        }
+
+        if (validRequest) {
+            return 0; // allows the caller to do the following steps
+        }
+
+        // if the request is not valid, determine the value to return:
+        // 0 if none of the following both fits
+        // 1 if the caller should return an empty list
+        // 2 if the caller should continue with the next loop
+        if (StringUtils.isBlank(config.getIdentifierHeaderName())) {
+            Helper.setFehlerMeldung("Cannot request catalogue, no identifier column defined");
+            log.error("Cannot request catalogue, no identifier column defined");
+            return 1;
+        }
+
+        Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
+        if (columnNumber == null) {
+            Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
+                    + "' not found in excel file.");
+            log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
+                    + "' not found in excel file.");
+            return 1;
+        }
+
+        String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
+        if (StringUtils.isBlank(catalogueIdentifier)) {
+            return 2;
+        }
+
+        // otherwise
+        return 0;
     }
 
     private boolean getPersonsWithRoles(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical,
