@@ -302,36 +302,19 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     logical = anchor.getAllChildren().get(0);
                 }
 
-                DocStructType physicalType = prefs.getDocStrctTypeByName("BoundBook");
-                DocStruct physical = digitalDocument.createDocStruct(physicalType);
-                digitalDocument.setPhysicalDocStruct(physical);
-                Metadata imagePath = new Metadata(prefs.getMetadataTypeByName("pathimagefiles"));
-                imagePath.setValue("./images/");
-                physical.addMetadata(imagePath);
+                // set up physical DocStruct
+                preparePhysicalDocStruct(prefs, digitalDocument);
 
-                // add collections if configured
-                String col = getConfig().getCollection();
-                if (StringUtils.isNotBlank(col)) {
-                    Metadata mdColl = new Metadata(prefs.getMetadataTypeByName("singleDigCollection"));
-                    mdColl.setValue(col);
-                    logical.addMetadata(mdColl);
-                }
-                // and add all collections that where selected
-                for (String colItem : form.getDigitalCollections()) {
-                    if (!colItem.equals(col.trim())) {
-                        Metadata mdColl = new Metadata(prefs.getMetadataTypeByName("singleDigCollection"));
-                        mdColl.setValue(colItem);
-                        logical.addMetadata(mdColl);
-                    }
-                }
+                // add collections that were configured or selected
+                prepareCollections(config, prefs, form.getDigitalCollections(), logical);
+
+                // create importobject for massimport
+                io.setImportReturnValue(ImportReturnValue.ExportFinished);
+
                 // create file name for mets file
                 String fileName = null;
 
-                // create importobject for massimport
-
-                io.setImportReturnValue(ImportReturnValue.ExportFinished);
-
-                for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
+                for (MetadataMappingObject mmo : config.getMetadataList()) {
                     String returnedFileName = processMetadataMappingObject(mmo, config, logical, anchor, headerOrder, rowMap, io, timestamp);
                     // only change fileName if it is modified while processing MetadataMappingObjects
                     if (returnedFileName != null) {
@@ -343,7 +326,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     getPersons(rec, headerOrder, rowMap, logical, anchor);
                 }
 
-                for (GroupMappingObject gmo : getConfig().getGroupList()) {
+                for (GroupMappingObject gmo : config.getGroupList()) {
                     try { //NOSONAR
                         MetadataGroup group = processGroupMappingObject(gmo, prefs, headerOrder, rowMap);
 
@@ -465,6 +448,37 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         // otherwise
         return 0;
+    }
+
+    private void preparePhysicalDocStruct(Prefs prefs, DigitalDocument digitalDocument)
+            throws TypeNotAllowedForParentException, MetadataTypeNotAllowedException {
+        DocStructType physicalType = prefs.getDocStrctTypeByName("BoundBook");
+        DocStruct physical = digitalDocument.createDocStruct(physicalType);
+        digitalDocument.setPhysicalDocStruct(physical);
+        Metadata imagePath = new Metadata(prefs.getMetadataTypeByName("pathimagefiles"));
+        imagePath.setValue("./images/");
+        physical.addMetadata(imagePath);
+    }
+
+    private void prepareCollections(ExcelConfig config, Prefs prefs, List<String> selectedCollections, DocStruct logical)
+            throws MetadataTypeNotAllowedException {
+        // add collections if configured
+        String col = config.getCollection();
+        if (StringUtils.isNotBlank(col)) {
+            addCollection(prefs, col, logical);
+        }
+        // and add all collections that were selected
+        for (String colItem : form.getDigitalCollections()) {
+            if (!colItem.equals(col.trim())) {
+                addCollection(prefs, colItem, logical);
+            }
+        }
+    }
+
+    private void addCollection(Prefs prefs, String collection, DocStruct logical) throws MetadataTypeNotAllowedException {
+        Metadata mdColl = new Metadata(prefs.getMetadataTypeByName("singleDigCollection"));
+        mdColl.setValue(collection);
+        logical.addMetadata(mdColl);
     }
 
     private String processMetadataMappingObject(MetadataMappingObject mmo, ExcelConfig config, DocStruct logical, DocStruct anchor,
