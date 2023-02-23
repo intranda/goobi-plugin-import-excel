@@ -266,49 +266,40 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Map<String, Integer> headerOrder = (Map<String, Integer>) list.get(0);
                 Map<Integer, String> rowMap = (Map<Integer, String>) list.get(1);
 
+                boolean useOpac = config.isUseOpac();
+
+                if (useOpac) {
+                    int control = validateRequest(config, headerOrder, rowMap);
+                    switch (control) {
+                        case 1:
+                            return Collections.emptyList();
+                        case 2:
+                            continue;
+                        default:
+                            // just go on with next steps
+                    }
+                }
+
                 // generate a mets file
-                DigitalDocument digitalDocument = null;
                 Fileformat ff = null;
+                DigitalDocument digitalDocument = null;
                 DocStruct logical = null;
                 DocStruct anchor = null;
-                if (!config.isUseOpac()) {
-                    ff = new MetsMods(prefs);
-                    digitalDocument = new DigitalDocument();
-                    ff.setDigitalDocument(digitalDocument);
-                    String publicationType = getConfig().getPublicationType();
-                    DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
-                    logical = digitalDocument.createDocStruct(logicalType);
-                    digitalDocument.setLogicalDocStruct(logical);
-                } else {
-                    try { //NOSONAR
-                        int control = validateRequest(config, headerOrder, rowMap);
-                        switch (control) {
-                            case 1:
-                                return Collections.emptyList();
-                            case 2:
-                                continue;
-                            default:
-                                // just go on with next steps
-                        }
+                try {
+                    ff = initializeFileformatForRecord(prefs, headerOrder, rowMap, useOpac);
+                    digitalDocument = initializeDigitalDocumentForRecord(ff, useOpac);
+                    logical = initializeLogicalDocStructForRecord(config, prefs, digitalDocument, useOpac);
+                } catch (Exception e) {
+                    log.error(e);
+                    io.setErrorMessage(e.getMessage());
+                    io.setImportReturnValue(ImportReturnValue.NoData);
+                    continue;
+                }
 
-                        String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
-                        if (StringUtils.isBlank(catalogue)) {
-                            catalogue = config.getOpacName();
-                        }
-                        ff = getRecordFromCatalogue(rowMap, headerOrder, catalogue);
-                        digitalDocument = ff.getDigitalDocument();
-                        logical = digitalDocument.getLogicalDocStruct();
-                        if (logical.getType().isAnchor()) {
-                            anchor = logical;
-                            logical = anchor.getAllChildren().get(0);
-                        }
-
-                    } catch (Exception e) {
-                        log.error(e);
-                        io.setErrorMessage(e.getMessage());
-                        io.setImportReturnValue(ImportReturnValue.NoData);
-                        continue;
-                    }
+                // according to the way of initialization of logical DocStruct, its type can only possibly be anchor when useOpac is true
+                if (logical.getType().isAnchor()) {
+                    anchor = logical;
+                    logical = anchor.getAllChildren().get(0);
                 }
 
                 DocStructType physicalType = prefs.getDocStrctTypeByName("BoundBook");
@@ -389,10 +380,50 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());
             }
-
         }
         // end of all excel rows
         return answer;
+    }
+
+    private Fileformat initializeFileformatForRecord(Prefs prefs, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, boolean useOpac)
+            throws PreferencesException, ImportPluginException {
+        if (!useOpac) {
+            return new MetsMods(prefs);
+        }
+        // useOpac
+        String catalogue = rowMap.get(headerOrder.get(config.getOpacHeader()));
+        if (StringUtils.isBlank(catalogue)) {
+            catalogue = config.getOpacName();
+        }
+
+        return getRecordFromCatalogue(rowMap, headerOrder, catalogue);
+    }
+
+    private DigitalDocument initializeDigitalDocumentForRecord(Fileformat ff, boolean useOpac) throws PreferencesException {
+        DigitalDocument digitalDocument = null;
+        if (!useOpac) {
+            digitalDocument = new DigitalDocument();
+            ff.setDigitalDocument(digitalDocument);
+        } else {
+            digitalDocument = ff.getDigitalDocument();
+        }
+
+        return digitalDocument;
+    }
+
+    private DocStruct initializeLogicalDocStructForRecord(ExcelConfig config, Prefs prefs, DigitalDocument digitalDocument, boolean useOpac)
+            throws TypeNotAllowedForParentException {
+        DocStruct logical = null;
+        if (!useOpac) {
+            String publicationType = config.getPublicationType();
+            DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
+            logical = digitalDocument.createDocStruct(logicalType);
+            digitalDocument.setLogicalDocStruct(logical);
+        } else {
+            logical = digitalDocument.getLogicalDocStruct();
+        }
+
+        return logical;
     }
 
     private int validateRequest(ExcelConfig config, Map<String, Integer> headerOrder, Map<Integer, String> rowMap) {
