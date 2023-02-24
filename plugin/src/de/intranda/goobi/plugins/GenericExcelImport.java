@@ -431,14 +431,52 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                 for (GroupMappingObject gmo : getConfig().getGroupList()) {
                     try { //NOSONAR
-                        MetadataGroup group = processGroupMappingObject(gmo, prefs, headerOrder, rowMap);
+                        MetadataGroup group = new MetadataGroup(prefs.getMetadataGroupTypeByName(gmo.getRulesetName()));
+                        for (MetadataMappingObject mmo : gmo.getMetadataList()) {
+                            String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
+                            Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
+                            md.setValue(value);
+                            if (mmo.getNormdataHeaderName() != null) {
+                                md.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(mmo.getNormdataHeaderName())));
+                            }
+                            group.addMetadata(md);
+                        }
+                        for (PersonMappingObject pmo : gmo.getPersonList()) {
 
+                            String firstname = "";
+                            String lastname = "";
+                            if (pmo.isSplitName()) {
+                                String name = rowMap.get(headerOrder.get(pmo.getHeaderName()));
+                                if (StringUtils.isNotBlank(name)) {
+                                    if (name.contains(pmo.getSplitChar())) {
+                                        if (pmo.isFirstNameIsFirst()) {
+                                            firstname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
+                                            lastname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
+                                        } else {
+                                            lastname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
+                                            firstname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
+                                        }
+                                    } else {
+                                        firstname = "";
+                                        lastname = name;
+                                    }
+                                }
+                            } else {
+                                firstname = rowMap.get(headerOrder.get(pmo.getFirstnameHeaderName()));
+                                lastname = rowMap.get(headerOrder.get(pmo.getLastnameHeaderName()));
+                            }
+                            Person p = makePerson(pmo.getRulesetName(), firstname, lastname);
+
+                            if (pmo.getNormdataHeaderName() != null) {
+                                p.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(pmo.getNormdataHeaderName())));
+                            }
+                            group.addMetadata(p);
+                        }
                         if (anchor != null && "anchor".equals(gmo.getDocType())) {
                             anchor.addMetadataGroup(group);
                         } else {
                             logical.addMetadataGroup(group);
                         }
-
                     } catch (MetadataTypeNotAllowedException e) {
                         log.info(e);
                         // Metadata is not known or not allowed
@@ -559,69 +597,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         // otherwise
         return 0;
-    }
-
-    private MetadataGroup processGroupMappingObject(GroupMappingObject gmo, Prefs prefs, Map<String, Integer> headerOrder,
-            Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
-
-        MetadataGroup group = new MetadataGroup(prefs.getMetadataGroupTypeByName(gmo.getRulesetName()));
-
-        for (MetadataMappingObject mmo : gmo.getMetadataList()) {
-            Metadata md = processMetadataMappingObject(mmo, prefs, headerOrder, rowMap);
-            group.addMetadata(md);
-        }
-
-        for (PersonMappingObject pmo : gmo.getPersonList()) {
-            Person p = processPersonMappingObject(pmo, prefs, headerOrder, rowMap);
-            group.addMetadata(p);
-        }
-
-        return group;
-    }
-
-    private Metadata processMetadataMappingObject(MetadataMappingObject mmo, Prefs prefs, Map<String, Integer> headerOrder,
-            Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
-        String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
-        Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
-        md.setValue(value);
-        if (mmo.getNormdataHeaderName() != null) {
-            md.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(mmo.getNormdataHeaderName())));
-        }
-        return md;
-    }
-
-    private Person processPersonMappingObject(PersonMappingObject pmo, Prefs prefs, Map<String, Integer> headerOrder, Map<Integer, String> rowMap)
-            throws MetadataTypeNotAllowedException {
-        String firstname = "";
-        String lastname = "";
-
-        if (!pmo.isSplitName()) {
-            firstname = rowMap.get(headerOrder.get(pmo.getFirstnameHeaderName()));
-            lastname = rowMap.get(headerOrder.get(pmo.getLastnameHeaderName()));
-        } else { // is split name
-            String name = rowMap.get(headerOrder.get(pmo.getHeaderName()));
-            if (StringUtils.isNotBlank(name)) {
-                if (!name.contains(pmo.getSplitChar())) {
-                    firstname = "";
-                    lastname = name;
-                } else if (pmo.isFirstNameIsFirst()) {
-                    firstname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
-                    lastname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
-                } else {
-                    lastname = name.substring(0, name.lastIndexOf(pmo.getSplitChar()));
-                    firstname = name.substring(name.lastIndexOf(pmo.getSplitChar()));
-                }
-            }
-            // if name is blank, then firstname and lastname will both remain ""
-        }
-
-        Person p = makePerson(pmo.getRulesetName(), firstname, lastname);
-
-        if (pmo.getNormdataHeaderName() != null) {
-            p.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(pmo.getNormdataHeaderName())));
-        }
-
-        return p;
     }
 
     private boolean getPersonsWithRoles(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical,
