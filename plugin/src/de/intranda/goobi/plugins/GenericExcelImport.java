@@ -528,7 +528,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return fileName;
     }
 
-
     private MetadataGroup processGroupMappingObject(GroupMappingObject gmo, Prefs prefs, Map<String, Integer> headerOrder,
             Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
 
@@ -547,7 +546,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return group;
     }
 
-
     private Metadata processMetadataMappingObjectInsideGMO(MetadataMappingObject mmo, Prefs prefs, Map<String, Integer> headerOrder,
             Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
         String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
@@ -558,7 +556,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         return md;
     }
-
 
     private Person processPersonMappingObjectInsideGMO(PersonMappingObject pmo, Prefs prefs, Map<String, Integer> headerOrder,
             Map<Integer, String> rowMap)
@@ -594,7 +591,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         return p;
     }
-
 
     private boolean getPersonsWithRoles(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical,
             DocStruct anchor) {
@@ -700,7 +696,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     }
 
     //Translate the roles from ecxel entry to Metadata
-
     private String getRoleName(String role) {
 
         for (MetadataMappingObject mmo : getConfig().getRolesList()) {
@@ -712,7 +707,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         return null;
     }
-
 
     private void getPersons(Record rec, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, DocStruct logical, DocStruct anchor) {
         List<PersonMappingObject> personList = getConfig().getPersonList();
@@ -843,7 +837,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
     }
 
-
     private String[] getRoles(Map<String, Integer> headerOrder, Map<Integer, String> rowMap, int length) {
         String[] lstRoles = null;
         if (getConfig().getRoleField() != null) {
@@ -864,7 +857,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return lstRoles;
     }
 
-
     private String performAddMetadata(ExcelConfig config, String value, String identifier, MetadataMappingObject mmo, DocStruct logical,
             DocStruct anchor) throws MetadataTypeNotAllowedException {
 
@@ -884,7 +876,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return value;
     }
     
-
     private String addMetadata(String value, String identifier, MetadataMappingObject mmo, DocStruct logical, DocStruct anchor)
             throws MetadataTypeNotAllowedException {
         Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
@@ -901,7 +892,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         return value;
     }
-
 
     private String getNewProcessTitle(ExcelConfig config, Map<String, Integer> headerOrder, Map<Integer, String> rowMap, String timestamp) {
         StringBuilder title = new StringBuilder();
@@ -939,7 +929,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     }
 
     //If the metadatum is a date, pasre the value string to look ok
-
     private String parseDateIfNecessary(String value, Metadata md) {
 
         String strVal = null;
@@ -967,7 +956,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return strVal;
     }
 
-
     private Person makePerson(String rulesetName, String firstname, String lastname) throws MetadataTypeNotAllowedException {
 
         Person p = new Person(prefs.getMetadataTypeByName(rulesetName));
@@ -988,7 +976,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         return p;
     }
-
 
     private void prepareImageFolder(ExcelConfig config, String fileName, Map<String, Integer> headerOrder, Map<Integer, String> rowMap,
             ImportObject io) {
@@ -1030,7 +1017,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             log.info("Missing images in " + imageSourceFolder);
         }
     }
-
 
     private boolean replaceExistingProcess(Fileformat ff, ImportObject io, Record rec) {
         boolean dataReplaced = false;
