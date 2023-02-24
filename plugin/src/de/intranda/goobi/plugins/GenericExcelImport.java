@@ -341,10 +341,41 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
                 for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
-                    String returnedFileName = processMetadataMappingObject(mmo, config, logical, anchor, headerOrder, rowMap, io, timestamp);
-                    // only change fileName if it is modified while processing MetadataMappingObjects
-                    if (returnedFileName != null) {
-                        fileName = returnedFileName;
+
+                    String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
+                    String identifier = null;
+                    if (mmo.getNormdataHeaderName() != null) {
+                        identifier = rowMap.get(headerOrder.get(mmo.getNormdataHeaderName()));
+                    }
+                    if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
+                        try { //NOSONAR
+                            //multiples ?
+                            value = performAddMetadata(config, value, identifier, mmo, logical, anchor);
+
+                        } catch (MetadataTypeNotAllowedException e) {
+                            log.info(e);
+                            // Metadata is not known or not allowed
+                        }
+                        // create a default title
+                        if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital") && !"anchor".equals(mmo.getDocType())) {
+                            fileName = getImportFolder() + File.separator + value + ".xml";
+                            io.setProcessTitle(value);
+                            io.setMetsFilename(fileName);
+                        }
+                    }
+                    if (StringUtils.isNotBlank(config.getProcesstitleRule())) {
+                        String filteredTitle = getNewProcessTitle(config, headerOrder, rowMap, timestamp);
+                        // set new process title
+                        fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
+                        io.setProcessTitle(filteredTitle);
+                        io.setMetsFilename(fileName);
+                    }
+
+                    if (StringUtils.isNotBlank(mmo.getPropertyName()) && StringUtils.isNotBlank(value)) {
+                        Processproperty p = new Processproperty();
+                        p.setTitel(mmo.getPropertyName());
+                        p.setWert(value);
+                        io.getProcessProperties().add(p);
                     }
                 }
 
@@ -379,10 +410,24 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 }
 
                 // check if the process exists
-                boolean dataReplaced = replaceExisting ? replaceExistingProcess(ff, io, rec) : false;
-                if (dataReplaced) {
-                    answer.remove(io);
-                    continue;
+                if (replaceExisting) {
+                    boolean dataReplaced = false;
+                    Process existingProcess = ProcessManager.getProcessByExactTitle(io.getProcessTitle());
+                    if (existingProcess != null) {
+                        try {
+                            existingProcess.writeMetadataFile(ff);
+                            dataReplaced = true;
+                        } catch (WriteException | PreferencesException | IOException | SwapException e) {
+                            log.error(e);
+                        }
+
+                        Path sourceRootFolder = Paths.get(rec.getData());
+                        moveImageIntoProcessFolder(existingProcess, sourceRootFolder);
+                    }
+                    if (dataReplaced) {
+                        answer.remove(io);
+                        continue;
+                    }
                 }
 
             } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
@@ -436,72 +481,25 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return 0;
     }
 
-    private String processMetadataMappingObject(MetadataMappingObject mmo, ExcelConfig config, DocStruct logical, DocStruct anchor,
-            Map<String, Integer> headerOrder,
-            Map<Integer, String> rowMap, ImportObject io, String timestamp) {
-        String fileName = null;
-
-        String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
-        String identifier = null;
-
-        if (mmo.getNormdataHeaderName() != null) {
-            identifier = rowMap.get(headerOrder.get(mmo.getNormdataHeaderName()));
-        }
-
-        if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
-            try {
-                  //multiples ?
-                value = performAddMetadata(config, value, identifier, mmo, logical, anchor);
-
-            } catch (MetadataTypeNotAllowedException e) {
-                log.info(e);
-                // Metadata is not known or not allowed
-            }
-            // create a default title
-            if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital") && !"anchor".equals(mmo.getDocType())) {
-                fileName = getImportFolder() + File.separator + value + ".xml";
-                io.setProcessTitle(value);
-                io.setMetsFilename(fileName);
-            }
-        }
-
-        if (StringUtils.isNotBlank(config.getProcesstitleRule())) {
-            String filteredTitle = getNewProcessTitle(config, headerOrder, rowMap, timestamp);
-            // set new process title
-            fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
-            io.setProcessTitle(filteredTitle);
-            io.setMetsFilename(fileName);
-        }
-
-        if (StringUtils.isNotBlank(mmo.getPropertyName()) && StringUtils.isNotBlank(value)) {
-            Processproperty p = new Processproperty();
-            p.setTitel(mmo.getPropertyName());
-            p.setWert(value);
-            io.getProcessProperties().add(p);
-        }
-
-        return fileName;
-    }
-
     private MetadataGroup processGroupMappingObject(GroupMappingObject gmo, Prefs prefs, Map<String, Integer> headerOrder,
             Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
 
         MetadataGroup group = new MetadataGroup(prefs.getMetadataGroupTypeByName(gmo.getRulesetName()));
 
         for (MetadataMappingObject mmo : gmo.getMetadataList()) {
-            Metadata md = processMetadataMappingObjectInsideGMO(mmo, prefs, headerOrder, rowMap);
+            Metadata md = processMetadataMappingObject(mmo, prefs, headerOrder, rowMap);
             group.addMetadata(md);
         }
 
         for (PersonMappingObject pmo : gmo.getPersonList()) {
-            Person p = processPersonMappingObjectInsideGMO(pmo, prefs, headerOrder, rowMap);
+            Person p = processPersonMappingObject(pmo, prefs, headerOrder, rowMap);
             group.addMetadata(p);
         }
 
         return group;
     }
 
-    private Metadata processMetadataMappingObjectInsideGMO(MetadataMappingObject mmo, Prefs prefs, Map<String, Integer> headerOrder,
+    private Metadata processMetadataMappingObject(MetadataMappingObject mmo, Prefs prefs, Map<String, Integer> headerOrder,
             Map<Integer, String> rowMap) throws MetadataTypeNotAllowedException {
         String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
         Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
@@ -512,8 +510,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return md;
     }
 
-    private Person processPersonMappingObjectInsideGMO(PersonMappingObject pmo, Prefs prefs, Map<String, Integer> headerOrder,
-            Map<Integer, String> rowMap)
+    private Person processPersonMappingObject(PersonMappingObject pmo, Prefs prefs, Map<String, Integer> headerOrder, Map<Integer, String> rowMap)
             throws MetadataTypeNotAllowedException {
         String firstname = "";
         String lastname = "";
@@ -971,24 +968,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         } else {
             log.info("Missing images in " + imageSourceFolder);
         }
-    }
-
-    private boolean replaceExistingProcess(Fileformat ff, ImportObject io, Record rec) {
-        boolean dataReplaced = false;
-        Process existingProcess = ProcessManager.getProcessByExactTitle(io.getProcessTitle());
-        if (existingProcess != null) {
-            try {
-                existingProcess.writeMetadataFile(ff);
-                dataReplaced = true;
-            } catch (WriteException | PreferencesException | IOException | SwapException e) {
-                log.error(e);
-            }
-
-            Path sourceRootFolder = Paths.get(rec.getData());
-            moveImageIntoProcessFolder(existingProcess, sourceRootFolder);
-        }
-
-        return dataReplaced;
     }
 
     private void moveImageIntoProcessFolder(Process existingProcess, Path sourceRootFolder) {
