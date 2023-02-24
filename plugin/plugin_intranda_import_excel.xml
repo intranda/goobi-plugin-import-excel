@@ -5,6 +5,9 @@
 
 		<!-- publication type to create -->
 		<publicationType>Monograph</publicationType>
+        <!-- anchor publication type, leave it blank for monographic imports -->
+        <anchorPublicationType></anchorPublicationType>
+        
 
 		<!-- which digital collection to use -->
 		<collection>mycollection</collection>

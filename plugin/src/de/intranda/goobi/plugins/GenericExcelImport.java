@@ -75,7 +75,7 @@ import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.PreferencesException;
-import ugh.exceptions.TypeNotAllowedForParentException;
+import ugh.exceptions.UGHException;
 import ugh.exceptions.WriteException;
 import ugh.fileformats.mets.MetsMods;
 
@@ -142,7 +142,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         Fileformat myRdf = null;
         DocStruct ds = null;
-        if (myImportOpac.getTitle().equals("intranda_opac_json")) {
+        if ("intranda_opac_json".equals(myImportOpac.getTitle())) {
 
             /**
              * 
@@ -275,10 +275,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     ff = new MetsMods(prefs);
                     digitalDocument = new DigitalDocument();
                     ff.setDigitalDocument(digitalDocument);
-                    String publicationType = getConfig().getPublicationType();
-                    DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
-                    logical = digitalDocument.createDocStruct(logicalType);
-                    digitalDocument.setLogicalDocStruct(logical);
+                    if (StringUtils.isNotBlank(getConfig().getAnchorPublicationType())) {
+                        anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(getConfig().getAnchorPublicationType()));
+                        logical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(getConfig().getPublicationType()));
+                        anchor.addChild(logical);
+                        digitalDocument.setLogicalDocStruct(anchor);
+                    } else {
+                        String publicationType = getConfig().getPublicationType();
+                        DocStructType logicalType = prefs.getDocStrctTypeByName(publicationType);
+                        logical = digitalDocument.createDocStruct(logicalType);
+                        digitalDocument.setLogicalDocStruct(logical);
+                    }
                 } else {
                     try { //NOSONAR
                         boolean validRequest = false;
@@ -299,9 +306,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
                             if (columnNumber == null) {
                                 Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
+                                        + "' not found in excel file.");
                                 log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                + "' not found in excel file.");
+                                        + "' not found in excel file.");
                                 return Collections.emptyList();
                             }
                             String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
@@ -368,12 +375,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                     if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
                         try { //NOSONAR
-                            //multiples ?
+                              //multiples ?
                             String strSplitListChar = config.getListSplitChar();
                             if (strSplitListChar != null && value.contains(strSplitListChar)) {
                                 String[] lstValues = value.split(strSplitListChar);
-                                for (int i = 0; i < lstValues.length; i++) {
-                                    String strVal = lstValues[i];
+                                for (String strVal : lstValues) {
                                     if (strVal != null && !strVal.isEmpty()) {
                                         addMetadata(strVal, identifier, mmo, logical, anchor);
                                     }
@@ -388,7 +394,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             // Metadata is not known or not allowed
                         }
                         // create a default title
-                        if (mmo.getRulesetName().equalsIgnoreCase("CatalogIDDigital") && !"anchor".equals(mmo.getDocType())) {
+                        if ("CatalogIDDigital".equalsIgnoreCase(mmo.getRulesetName()) && !"anchor".equals(mmo.getDocType())) {
                             fileName = getImportFolder() + File.separator + value + ".xml";
                             io.setProcessTitle(value);
                             io.setMetsFilename(fileName);
@@ -404,20 +410,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                              */
                             if (myString.startsWith("'") && myString.endsWith("'")) {
                                 title.append(myString.substring(1, myString.length() - 1));
-                            } else {
-                                if (myString.equalsIgnoreCase("Signatur") || myString.equalsIgnoreCase("Shelfmark")) {
-                                    if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
-                                        // replace white spaces with dash, remove other special characters
-                                        title.append(
-                                                rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
-                                    }
-                                } else if (myString.equalsIgnoreCase("timestamp")) {
-                                    title.append(timestamp);
-                                } else {
-                                    String s = rowMap.get(headerOrder.get(myString));
-                                    title.append(s != null ? s : "");
+                            } else if ("Signatur".equalsIgnoreCase(myString) || "Shelfmark".equalsIgnoreCase(myString)) {
+                                if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
+                                    // replace white spaces with dash, remove other special characters
+                                    title.append(
+                                            rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                 }
-
+                            } else if ("timestamp".equalsIgnoreCase(myString)) {
+                                title.append(timestamp);
+                            } else {
+                                String s = rowMap.get(headerOrder.get(myString));
+                                title.append(s != null ? s : "");
                             }
                         }
                         String newTitle = title.toString();
@@ -567,11 +570,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                 }
 
-            } catch (WriteException | PreferencesException | MetadataTypeNotAllowedException | TypeNotAllowedForParentException e) {
+            } catch (UGHException e) {
                 io.setImportReturnValue(ImportReturnValue.WriteError);
                 io.setErrorMessage(e.getMessage());
             }
-
         }
         // end of all excel rows
         return answer;
@@ -957,13 +959,11 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     }
 
     private void copyFile(Path file, Path destination) throws IOException {
-
         if (moveFiles) {
             Files.move(file, destination, StandardCopyOption.REPLACE_EXISTING);
         } else {
             Files.copy(file, destination, StandardCopyOption.REPLACE_EXISTING);
         }
-
     }
 
     @Override
@@ -971,9 +971,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public List<Record> generateRecordsFromFile() {
-
         if (StringUtils.isBlank(workflowTitle)) {
             workflowTitle = form.getTemplate().getTitel();
         }
@@ -1031,8 +1031,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     continue;
                 }
                 for (int cn = 0; cn < lastColumn; cn++) {
-                    //                while (cellIterator.hasNext()) {
-                    //                    Cell cell = cellIterator.next();
                     Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
                     String value = "";
                     switch (cell.getCellType()) {
@@ -1040,7 +1038,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             value = cell.getBooleanCellValue() ? "true" : "false";
                             break;
                         case FORMULA:
-                            //                            value = cell.getCellFormula();
                             value = cell.getRichStringCellValue().getString();
                             break;
                         case NUMERIC:
@@ -1055,7 +1052,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             break;
                     }
                     map.put(cn, value);
-
                 }
 
                 // just add the record if any column contains a value
