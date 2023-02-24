@@ -401,12 +401,46 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                 // write mets file into import folder
                 ff.write(fileName);
-                
-                boolean validImageFolderHeaderName = StringUtils.isNotBlank(config.getImageFolderHeaderName())
-                        && StringUtils.isNotBlank(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
 
-                if (validImageFolderHeaderName) {
-                    prepareImageFolder(config, fileName, headerOrder, rowMap, io);
+                if (StringUtils.isNotBlank(config.getImageFolderHeaderName())
+                        && StringUtils.isNotBlank(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())))) {
+
+                    Path imageSourceFolder = null;
+                    if (config.getImageFolderPath() != null) {
+                        imageSourceFolder = Paths.get(config.getImageFolderPath(), rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
+                    } else {
+                        imageSourceFolder = Paths.get(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
+                    }
+                    if (Files.exists(imageSourceFolder) && Files.isDirectory(imageSourceFolder)) {
+
+                        // folder name
+                        String foldername = fileName.replace(".xml", "");
+
+                        String folderNameRule = ConfigurationHelper.getInstance().getProcessImagesMasterDirectoryName();
+                        folderNameRule = folderNameRule.replace("{processtitle}", io.getProcessTitle());
+
+                        Path path = Paths.get(foldername, "images", folderNameRule);
+                        try {
+                            Files.createDirectories(path.getParent());
+                            if (config.isMoveImage()) {
+                                StorageProvider.getInstance().move(imageSourceFolder, path);
+                            } else {
+                                StorageProvider.getInstance().copyDirectory(imageSourceFolder, path);
+                            }
+                        } catch (IOException e) {
+                            log.error(e);
+                            if (config.isFailOnMissingImageFiles()) {
+                                io.setImportReturnValue(ImportReturnValue.WriteError);
+                                io.setErrorMessage(e.getMessage());
+                            }
+                        }
+
+                    } else if (config.isFailOnMissingImageFiles()) {
+                        io.setImportReturnValue(ImportReturnValue.InvalidData);
+                        io.setErrorMessage("Missing images in " + imageSourceFolder);
+                    } else {
+                        log.info("Missing images in " + imageSourceFolder);
+                    }
                 }
 
                 // check if the process exists
@@ -927,47 +961,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         p.setLastname(lastname);
 
         return p;
-    }
-
-    private void prepareImageFolder(ExcelConfig config, String fileName, Map<String, Integer> headerOrder, Map<Integer, String> rowMap,
-            ImportObject io) {
-
-        Path imageSourceFolder = null;
-        if (config.getImageFolderPath() != null) {
-            imageSourceFolder = Paths.get(config.getImageFolderPath(), rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
-        } else {
-            imageSourceFolder = Paths.get(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
-        }
-
-        if (Files.exists(imageSourceFolder) && Files.isDirectory(imageSourceFolder)) {
-            // folder name
-            String foldername = fileName.replace(".xml", "");
-
-            String folderNameRule = ConfigurationHelper.getInstance().getProcessImagesMasterDirectoryName();
-            folderNameRule = folderNameRule.replace("{processtitle}", io.getProcessTitle());
-
-            Path path = Paths.get(foldername, "images", folderNameRule);
-            try {
-                Files.createDirectories(path.getParent());
-                if (config.isMoveImage()) {
-                    StorageProvider.getInstance().move(imageSourceFolder, path);
-                } else {
-                    StorageProvider.getInstance().copyDirectory(imageSourceFolder, path);
-                }
-            } catch (IOException e) {
-                log.error(e);
-                if (config.isFailOnMissingImageFiles()) {
-                    io.setImportReturnValue(ImportReturnValue.WriteError);
-                    io.setErrorMessage(e.getMessage());
-                }
-            }
-
-        } else if (config.isFailOnMissingImageFiles()) {
-            io.setImportReturnValue(ImportReturnValue.InvalidData);
-            io.setErrorMessage("Missing images in " + imageSourceFolder);
-        } else {
-            log.info("Missing images in " + imageSourceFolder);
-        }
     }
 
     private void moveImageIntoProcessFolder(Process existingProcess, Path sourceRootFolder) {
