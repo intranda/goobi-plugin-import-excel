@@ -35,6 +35,9 @@
 			If the field is missing or empty, the value of CatalogIDDigital is used. -->
 		<processTitleRule>2-Titel+'_'+PPN-O</processTitleRule>
 
+<metadatasplitallowed>true</metadatasplitallowed>
+<metadataDelimiter>;</metadataDelimiter>
+
         <importImages failOnMissingImageFiles="true">
     		<!-- prefix path to the image folder. Can be empty or missing if the import doesn't contain images or if the excel field contains absolute path  -->
     		<imageFolderPath>/opt/digiverso/images/</imageFolderPath>
@@ -63,7 +66,7 @@
 		<metadata ugh="CatalogIDDigital" headerName="PPN-O" />
 		<metadata ugh="TitleDocMain" headerName="2-Titel" />
 		<metadata ugh="PlaceOfPublication" property="Ort" normdataHeaderName="4-GND-ORT" headerName="3-Ort" docType="anchor" />
-		<metadata ugh="DocLanguage" headerName="10-DocLanguage" />
+		<metadata ugh="DocLanguage" headerName="10-DocLanguage" split="true" />
 
 		<!-- a configuration for a person might look like this -->
 		<person ugh="Author" normdataHeaderName="7-GND-Person" docType="child">

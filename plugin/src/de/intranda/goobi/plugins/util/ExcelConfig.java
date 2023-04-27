@@ -47,6 +47,10 @@ public class ExcelConfig {
     private String imageHandlingStrategy; //copy, move or ignore
     private boolean failOnMissingImageFiles = false;
 
+    private boolean splittingAllowed;
+    private String splittingDelimiter;
+
+
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -69,6 +73,9 @@ public class ExcelConfig {
         rowDataStart = xmlConfig.getInt("/rowDataStart", 2);
         rowDataEnd = xmlConfig.getInt("/rowDataEnd", 20000);
 
+        splittingAllowed = xmlConfig.getBoolean("/metadatasplitallowed", false);
+        splittingDelimiter = xmlConfig.getString("/metadataDelimiter", ";");
+
         processtitleRule = xmlConfig.getString("/processTitleRule", null);
 
         List<HierarchicalConfiguration> iml = xmlConfig.configurationsAt("//importImages");
@@ -77,7 +84,7 @@ public class ExcelConfig {
 
             List<ConfigurationNode> attr = md.getRootNode().getAttributes("failOnMissingImageFiles");
 
-            if (attr != null && attr.size() > 0) {
+            if (attr != null && !attr.isEmpty()) {
                 failOnMissingImageFiles = attr.get(0).getValue().toString().contentEquals("true");
             }
 
@@ -157,7 +164,7 @@ public class ExcelConfig {
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
-
+        boolean splitAllowed = md.getBoolean("@split", false);
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
         //        mmo.setIdentifierColumn(identifierColumn);
@@ -166,7 +173,7 @@ public class ExcelConfig {
         mmo.setHeaderName(headerName);
         mmo.setNormdataHeaderName(normdataHeaderName);
         mmo.setDocType(docType);
-
+        mmo.setSplittingAllowed(splitAllowed);
         mmo.setSearchField(md.getString("@opacSearchField", null));
         return mmo;
     }

@@ -306,9 +306,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             Integer columnNumber = headerOrder.get(config.getIdentifierHeaderName());
                             if (columnNumber == null) {
                                 Helper.setFehlerMeldung("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                        + "' not found in excel file.");
+                                + "' not found in excel file.");
                                 log.error("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                                        + "' not found in excel file.");
+                                + "' not found in excel file.");
                                 return Collections.emptyList();
                             }
                             String catalogueIdentifier = rowMap.get(headerOrder.get(config.getIdentifierHeaderName()));
@@ -375,18 +375,24 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                     if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
                         try { //NOSONAR
-                              //multiples ?
-                            String strSplitListChar = config.getListSplitChar();
-                            if (strSplitListChar != null && value.contains(strSplitListChar)) {
-                                String[] lstValues = value.split(strSplitListChar);
+                            // splitting is configured for this field
+                            if (config.isSplittingAllowed() && mmo.isSplittingAllowed()) {
+                                String delimiter = config.getSplittingDelimiter();
+                                String[] values = value.split(delimiter);
+                                for (String val : values) {
+                                    if (StringUtils.isNotBlank(val)) {
+                                        addMetadata(val.trim(), identifier, mmo, logical, anchor);
+                                    }
+                                }
+                            } else if (StringUtils.isNotBlank(config.getListSplitChar()) && value.contains(config.getListSplitChar())) {
+                                //multiples ?
+                                String[] lstValues = value.split(config.getListSplitChar());
                                 for (String strVal : lstValues) {
                                     if (strVal != null && !strVal.isEmpty()) {
                                         addMetadata(strVal, identifier, mmo, logical, anchor);
                                     }
                                 }
-
                             } else {
-
                                 value = addMetadata(value, identifier, mmo, logical, anchor);
                             }
                         } catch (MetadataTypeNotAllowedException e) {
@@ -401,7 +407,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     }
                     if (StringUtils.isNotBlank(config.getProcesstitleRule())) {
-                        StringBuilder title = new StringBuilder();
+                        StringBuilder titleValue = new StringBuilder();
                         StringTokenizer tokenizer = new StringTokenizer(config.getProcesstitleRule(), "+");
                         while (tokenizer.hasMoreTokens()) {
                             String myString = tokenizer.nextToken();
@@ -409,21 +415,21 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                              * wenn der String mit ' anfängt und mit ' endet, dann den Inhalt so übernehmen
                              */
                             if (myString.startsWith("'") && myString.endsWith("'")) {
-                                title.append(myString.substring(1, myString.length() - 1));
+                                titleValue.append(myString.substring(1, myString.length() - 1));
                             } else if ("Signatur".equalsIgnoreCase(myString) || "Shelfmark".equalsIgnoreCase(myString)) {
                                 if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
                                     // replace white spaces with dash, remove other special characters
-                                    title.append(
+                                    titleValue.append(
                                             rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                                 }
                             } else if ("timestamp".equalsIgnoreCase(myString)) {
-                                title.append(timestamp);
+                                titleValue.append(timestamp);
                             } else {
                                 String s = rowMap.get(headerOrder.get(myString));
-                                title.append(s != null ? s : "");
+                                titleValue.append(s != null ? s : "");
                             }
                         }
-                        String newTitle = title.toString();
+                        String newTitle = titleValue.toString();
                         if (newTitle.endsWith("_")) {
                             newTitle = newTitle.substring(0, newTitle.length() - 1);
                         }
@@ -566,7 +572,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                     if (dataReplaced) {
                         answer.remove(io);
-                        continue;
                     }
                 }
 
@@ -866,27 +871,24 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     private String parseDateIfNecessary(String value, Metadata md) {
 
         String strVal = null;
-        if (value.contains("")) {
-            strVal = value.replace("", " ");
+        if (value.contains("")) {//NOSONAR
+            strVal = value.replace("", " ");//NOSONAR
         } else {
             strVal = value;
         }
         String strType = md.getType().getName();
-        if (strType.contentEquals("PublicationYear") || strType.contentEquals("PublicationStart") || strType.contentEquals("PublicationEnd")
-                || strType.contentEquals("datedigit") || strType.contentEquals("dateupdate")) {
-            if (strVal.length() == 8) {
-                //check first 4 chars are the year:
-                int year = Integer.parseInt(strVal.substring(0, 4));
-                if (1600 < year && 2200 > year) {
-                    if (strVal.substring(4, 6).contentEquals("00")) {
-                        strVal = strVal.substring(0, 4);
-                    } else {
-                        strVal = strVal.substring(0, 4) + "/" + strVal.substring(4, 6) + "/" + strVal.substring(6, 8);
-                    }
+        if ((strType.contentEquals("PublicationYear") || strType.contentEquals("PublicationStart") || strType.contentEquals("PublicationEnd")
+                || strType.contentEquals("datedigit") || strType.contentEquals("dateupdate")) && strVal.length() == 8) {
+            //check first 4 chars are the year:
+            int year = Integer.parseInt(strVal.substring(0, 4));
+            if (1600 < year && 2200 > year) {
+                if (strVal.substring(4, 6).contentEquals("00")) {
+                    strVal = strVal.substring(0, 4);
+                } else {
+                    strVal = strVal.substring(0, 4) + "/" + strVal.substring(4, 6) + "/" + strVal.substring(6, 8);
                 }
             }
         }
-
         return strVal;
     }
 
@@ -968,7 +970,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     @Override
     public List<Record> splitRecords(String records) {
-        return null;
+        return null; //NOSONAR
     }
 
     @SuppressWarnings("deprecation")
@@ -982,12 +984,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         String idColumn = getConfig().getIdentifierHeaderName();
         Map<String, Integer> headerOrder = new HashMap<>();
 
-        InputStream fileInputStream = null;
-        Workbook wb = null;
-        try {
-            fileInputStream = new FileInputStream(file);
-            BOMInputStream in = new BOMInputStream(fileInputStream, false);
-            wb = WorkbookFactory.create(in);
+        try (InputStream fileInputStream = new FileInputStream(file); BOMInputStream in = new BOMInputStream(fileInputStream, false);
+                Workbook wb = WorkbookFactory.create(in)) {
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
 
@@ -1069,26 +1067,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                 }
             }
-
         } catch (Exception e) {
             log.error(e);
-        } finally {
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    log.error(e);
-                }
-            }
-            if (wb != null) {
-                try {
-                    wb.close();
-                } catch (IOException e) {
-                    log.error(e);
-                }
-            }
         }
-
         return recordList;
     }
 

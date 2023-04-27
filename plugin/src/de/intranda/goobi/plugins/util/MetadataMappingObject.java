@@ -18,4 +18,6 @@ public class MetadataMappingObject {
     private String docType ;
 
     private String searchField;
+
+    private boolean splittingAllowed;
 }
