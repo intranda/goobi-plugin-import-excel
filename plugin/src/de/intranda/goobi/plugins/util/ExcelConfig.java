@@ -34,6 +34,7 @@ public class ExcelConfig {
     private String searchField;
 
     private String processtitleRule;
+    private String replacement;
 
     private String imageFolderPath;
     private String imageFolderHeaderName;
@@ -77,6 +78,7 @@ public class ExcelConfig {
         splittingDelimiter = xmlConfig.getString("/metadataDelimiter", ";");
 
         processtitleRule = xmlConfig.getString("/processTitleRule", null);
+        replacement = xmlConfig.getString("/processTitleRule/@replacewith", "");
 
         List<HierarchicalConfiguration> iml = xmlConfig.configurationsAt("//importImages");
 
@@ -160,14 +162,12 @@ public class ExcelConfig {
         String rulesetName = md.getString("@ugh");
         String propertyName = md.getString("@property");
         Integer columnNumber = md.getInteger("@column", null);
-        //        Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
         boolean splitAllowed = md.getBoolean("@split", false);
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
-        //        mmo.setIdentifierColumn(identifierColumn);
         mmo.setPropertyName(propertyName);
         mmo.setRulesetName(rulesetName);
         mmo.setHeaderName(headerName);

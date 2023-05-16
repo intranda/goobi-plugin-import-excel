@@ -436,7 +436,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         // remove non-ascii characters for the sake of TIFF header limits
                         String regex = ConfigurationHelper.getInstance().getProcessTitleReplacementRegex();
 
-                        String filteredTitle = newTitle.replaceAll(regex, "");
+                        String filteredTitle = newTitle.replaceAll(regex, config.getReplacement());
 
                         // set new process title
                         fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
