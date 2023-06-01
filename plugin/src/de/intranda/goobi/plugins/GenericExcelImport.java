@@ -535,7 +535,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             if (config.isMoveImage()) {
                                 StorageProvider.getInstance().move(imageSourceFolder, path);
                             } else {
-                                StorageProvider.getInstance().copyDirectory(imageSourceFolder, path);
+                                StorageProvider.getInstance().copyDirectory(imageSourceFolder, path, false);
                             }
                         } catch (IOException e) {
                             log.error(e);
@@ -921,7 +921,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 for (Path currentData : dataInSourceImageFolder) {
                     if (StorageProvider.getInstance().isDirectory(currentData)) {
                         try {
-                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getImagesDirectory()));
+                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getImagesDirectory()), false);
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
@@ -948,7 +948,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     } else {
                         try {
-                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getOcrDirectory()));
+                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getOcrDirectory()), false);
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
