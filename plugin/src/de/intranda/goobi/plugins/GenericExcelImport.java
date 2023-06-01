@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +23,6 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -523,7 +521,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     } else {
                         imageSourceFolder = Paths.get(rowMap.get(headerOrder.get(config.getImageFolderHeaderName())));
                     }
-                    if (Files.exists(imageSourceFolder) && Files.isDirectory(imageSourceFolder)) {
+                    if (StorageProvider.getInstance().isDirectory(imageSourceFolder)) {
 
                         // folder name
                         String foldername = fileName.replace(".xml", "");
@@ -533,7 +531,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                         Path path = Paths.get(foldername, "images", folderNameRule);
                         try {
-                            Files.createDirectories(path.getParent());
+                            StorageProvider.getInstance().createDirectories(path.getParent());
                             if (config.isMoveImage()) {
                                 StorageProvider.getInstance().move(imageSourceFolder, path);
                             } else {
@@ -921,16 +919,16 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 List<Path> dataInSourceImageFolder = StorageProvider.getInstance().listFiles(sourceImageFolder.toString());
 
                 for (Path currentData : dataInSourceImageFolder) {
-                    if (Files.isDirectory(currentData)) {
+                    if (StorageProvider.getInstance().isDirectory(currentData)) {
                         try {
-                            FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getImagesDirectory()).toFile());
+                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getImagesDirectory()));
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
                     } else {
                         try {
-                            FileUtils.copyFile(currentData.toFile(),
-                                    Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()).toFile());
+                            StorageProvider.getInstance()
+                            .copyFile(currentData, Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()));
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
@@ -939,7 +937,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             }
 
             // ocr
-            if (Files.exists(sourceOcrFolder)) {
+            if (StorageProvider.getInstance().isFileExists(sourceOcrFolder)) {
                 List<Path> dataInSourceImageFolder = StorageProvider.getInstance().listFiles(sourceOcrFolder.toString());
                 for (Path currentData : dataInSourceImageFolder) {
                     if (Files.isRegularFile(currentData)) {
@@ -950,7 +948,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     } else {
                         try {
-                            FileUtils.copyDirectory(currentData.toFile(), Paths.get(existingProcess.getOcrDirectory()).toFile());
+                            StorageProvider.getInstance().copyDirectory(currentData, Paths.get(existingProcess.getOcrDirectory()));
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
@@ -962,9 +960,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private void copyFile(Path file, Path destination) throws IOException {
         if (moveFiles) {
-            Files.move(file, destination, StandardCopyOption.REPLACE_EXISTING);
+            StorageProvider.getInstance().move(file, destination);
         } else {
-            Files.copy(file, destination, StandardCopyOption.REPLACE_EXISTING);
+            StorageProvider.getInstance().copyFile(file, destination);
         }
     }
 
