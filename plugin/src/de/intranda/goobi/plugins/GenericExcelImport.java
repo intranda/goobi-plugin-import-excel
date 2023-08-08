@@ -85,7 +85,15 @@ import ugh.fileformats.mets.MetsMods;
 public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
     private static final long serialVersionUID = 3965077868027995218L;
+    private static final String TITLE = "intranda_import_excel";
 
+    @EqualsAndHashCode.Exclude
+    private final transient ConfigOpac configOpac;
+    @EqualsAndHashCode.Exclude
+    private final transient XMLConfiguration xmlConfig;
+    @EqualsAndHashCode.Exclude
+    private transient ExcelConfig config;
+    
     private Prefs prefs;
     private MassImportForm form;
     private String importFolder;
@@ -102,18 +110,19 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     @EqualsAndHashCode.Exclude
     private boolean moveFiles = false;
 
-    private String title = "intranda_import_excel";
 
     private List<ImportType> importTypes;
     private String workflowTitle;
 
-    @EqualsAndHashCode.Exclude
-    private transient ExcelConfig config;
-
     public GenericExcelImport() {
+        this(ConfigOpac.getInstance(), ConfigPlugins.getPluginConfig(TITLE));
+    }
+    
+    public GenericExcelImport(ConfigOpac configOpac, XMLConfiguration xmlConfig) {
         importTypes = new ArrayList<>();
         importTypes.add(ImportType.FILE);
-
+        this.configOpac = configOpac;
+        this.xmlConfig = xmlConfig;
         getConfig();
     }
 
@@ -131,7 +140,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             throws ImportPluginException {
         IOpacPlugin myImportOpac = null;
         ConfigOpacCatalogue coc = null;
-        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues(workflowTitle)) {
+        for (ConfigOpacCatalogue configOpacCatalogue : configOpac.getAllCatalogues(workflowTitle)) {
             if (configOpacCatalogue.getTitle().equals(catalogue)) {
                 myImportOpac = configOpacCatalogue.getOpacPlugin();
                 coc = configOpacCatalogue;
@@ -156,40 +165,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
              */
 
             try {
-                Class<? extends Object> opacClass = myImportOpac.getClass();
-                Method getConfigForOpac = opacClass.getMethod("getConfigForOpac");
-                Object jsonOpacConfig = getConfigForOpac.invoke(myImportOpac);
-
-                Class<? extends Object> jsonOpacConfigClass = jsonOpacConfig.getClass();
-
-                Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
-
-                Object fieldList = getFieldList.invoke(jsonOpacConfig);
-                @SuppressWarnings("unchecked")
-                List<Object> searchfields = (List<Object>) fieldList;
-                for (MetadataMappingObject mmo : config.getMetadataList()) {
-                    if (StringUtils.isNotBlank(mmo.getSearchField())) {
-                        for (Object searchField : searchfields) {
-                            Class<? extends Object> searchFieldClass = searchField.getClass();
-
-                            Method getId = searchFieldClass.getMethod("getId");
-
-                            Method setText = searchFieldClass.getMethod("setText", String.class);
-                            Method setSelectedField = searchFieldClass.getMethod("setSelectedField", String.class);
-
-                            Object id = getId.invoke(searchField);
-                            if (((String) id).equals(mmo.getSearchField())) {
-                                String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
-                                if (StringUtils.isNotBlank(value)) {
-                                    setText.invoke(searchField, value);
-                                    setSelectedField.invoke(searchField, mmo.getHeaderName());
-                                }
-                            }
-                        }
-                    }
-                }
-                Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
-
+                Method search = loadSearchMethod(rowMap, headerOrder, myImportOpac);
                 myRdf = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
                 try { //NOSONAR
                     ds = myRdf.getDigitalDocument().getLogicalDocStruct();
@@ -241,6 +217,44 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
 
         return myRdf;
+    }
+
+    public Method loadSearchMethod(Map<Integer, String> rowMap, Map<String, Integer> headerOrder, IOpacPlugin myImportOpac)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Class<? extends Object> opacClass = myImportOpac.getClass();
+        Method getConfigForOpac = opacClass.getMethod("getConfigForOpac");
+        Object jsonOpacConfig = getConfigForOpac.invoke(myImportOpac);
+
+        Class<? extends Object> jsonOpacConfigClass = jsonOpacConfig.getClass();
+
+        Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
+
+        Object fieldList = getFieldList.invoke(jsonOpacConfig);
+        @SuppressWarnings("unchecked")
+        List<Object> searchfields = (List<Object>) fieldList;
+        for (MetadataMappingObject mmo : config.getMetadataList()) {
+            if (StringUtils.isNotBlank(mmo.getSearchField())) {
+                for (Object searchField : searchfields) {
+                    Class<? extends Object> searchFieldClass = searchField.getClass();
+
+                    Method getId = searchFieldClass.getMethod("getId");
+
+                    Method setText = searchFieldClass.getMethod("setText", String.class);
+                    Method setSelectedField = searchFieldClass.getMethod("setSelectedField", String.class);
+
+                    Object id = getId.invoke(searchField);
+                    if (((String) id).equals(mmo.getSearchField())) {
+                        String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
+                        if (StringUtils.isNotBlank(value)) {
+                            setText.invoke(searchField, value);
+                            setSelectedField.invoke(searchField, mmo.getHeaderName());
+                        }
+                    }
+                }
+            }
+        }
+        Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
+        return search;
     }
 
     @SuppressWarnings("unchecked")
@@ -982,12 +996,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         String idColumn = getConfig().getIdentifierHeaderName();
         Map<String, Integer> headerOrder = new HashMap<>();
 
-        InputStream fileInputStream = null;
-        Workbook wb = null;
-        try {
-            fileInputStream = new FileInputStream(file);
-            BOMInputStream in = new BOMInputStream(fileInputStream, false);
-            wb = WorkbookFactory.create(in);
+        try (InputStream fileInputStream = new FileInputStream(file);
+             BOMInputStream in = new BOMInputStream(fileInputStream, false);
+             Workbook wb = WorkbookFactory.create(in);){
+            
             Sheet sheet = wb.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.rowIterator();
 
@@ -1031,31 +1043,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     continue;
                 }
                 for (int cn = 0; cn < lastColumn; cn++) {
-                    //                while (cellIterator.hasNext()) {
-                    //                    Cell cell = cellIterator.next();
-                    Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    String value = "";
-                    switch (cell.getCellType()) {
-                        case BOOLEAN:
-                            value = cell.getBooleanCellValue() ? "true" : "false";
-                            break;
-                        case FORMULA:
-                            //                            value = cell.getCellFormula();
-                            value = cell.getRichStringCellValue().getString();
-                            break;
-                        case NUMERIC:
-                            value = String.valueOf((long) cell.getNumericCellValue());
-                            break;
-                        case STRING:
-                            value = cell.getStringCellValue();
-                            break;
-                        default:
-                            // none, error, blank
-                            value = "";
-                            break;
-                    }
-                    map.put(cn, value);
-
+                    map.put(cn, getCellValue(row, cn));
                 }
 
                 // just add the record if any column contains a value
@@ -1076,24 +1064,34 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         } catch (Exception e) {
             log.error(e);
-        } finally {
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    log.error(e);
-                }
-            }
-            if (wb != null) {
-                try {
-                    wb.close();
-                } catch (IOException e) {
-                    log.error(e);
-                }
-            }
         }
 
         return recordList;
+    }
+
+    public String getCellValue(Row row, int columnIndex) {
+        Cell cell = row.getCell(columnIndex, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        String value = "";
+        switch (cell.getCellType()) {
+            case BOOLEAN:
+                value = cell.getBooleanCellValue() ? "true" : "false";
+                break;
+            case FORMULA:
+                //                            value = cell.getCellFormula();
+                value = cell.getRichStringCellValue().getString();
+                break;
+            case NUMERIC:
+                value = String.valueOf((long) cell.getNumericCellValue());
+                break;
+            case STRING:
+                value = cell.getStringCellValue();
+                break;
+            default:
+                // none, error, blank
+                value = "";
+                break;
+        }
+        return value;
     }
 
     @Override
@@ -1178,7 +1176,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
      */
 
     private ExcelConfig loadConfig(String workflowTitle) {
-        XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(title);
         xmlConfig.setExpressionEngine(new XPathExpressionEngine());
         xmlConfig.setReloadingStrategy(new FileChangedReloadingStrategy());
 
@@ -1200,4 +1197,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return new ExcelConfig(myconfig);
     }
 
+    @Override
+    public String getTitle() {
+        return TITLE;
+    }
+    
 }

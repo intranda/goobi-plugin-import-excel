@@ -1,0 +1,847 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/">
+  <version>1.2</version>
+  <numberOfRecords>1</numberOfRecords>
+  <records>
+    <record>
+      <recordSchema>marcxml</recordSchema>
+      <recordPacking>xml</recordPacking>
+      <recordData>
+        <record xmlns="http://www.loc.gov/MARC21/slim">
+          <leader>01464cas a2200361 i 4500</leader>
+          <controlfield tag="001">9923254553502466</controlfield>
+          <controlfield tag="005">20220311145621.0</controlfield>
+          <controlfield tag="008">150116d18401864stkdr pe    | 0   a0eng^^</controlfield>
+          <datafield ind1=" " ind2=" " tag="035">
+            <subfield code="a">(StEdU)2325455-eddb-Voyager</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="040">
+            <subfield code="a">AU@</subfield>
+            <subfield code="b">eng</subfield>
+            <subfield code="e">rda</subfield>
+            <subfield code="c">AU@</subfield>
+            <subfield code="d">StEdU</subfield>
+            <subfield code="d">dcrmb</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="4" tag="082">
+            <subfield code="a">052</subfield>
+            <subfield code="2">23</subfield>
+          </datafield>
+          <datafield ind1="0" ind2=" " tag="130">
+            <subfield code="a">Witness (Edinburgh, Scotland : 1840)</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="4" tag="245">
+            <subfield code="a">The Witness.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2="1" tag="264">
+            <subfield code="a">Edinburgh :</subfield>
+            <subfield code="b">J. Johnstone and R. Fairly,</subfield>
+            <subfield code="c">1840-1864.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="300">
+            <subfield code="a">25 volumes :</subfield>
+            <subfield code="b">illustrations ;</subfield>
+            <subfield code="c">64-78 cm</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="310">
+            <subfield code="a">Daily,</subfield>
+            <subfield code="b">Feb. 1864</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="321">
+            <subfield code="a">Two issues weekly,</subfield>
+            <subfield code="b">1840-&lt;1858&gt;</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="321">
+            <subfield code="a">Three issues weekly &lt;</subfield>
+            <subfield code="b">1861&gt;-Feb. 1864</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="336">
+            <subfield code="a">text</subfield>
+            <subfield code="b">txt</subfield>
+            <subfield code="2">rdacontent</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="337">
+            <subfield code="a">unmediated</subfield>
+            <subfield code="b">n</subfield>
+            <subfield code="2">rdamedia</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="338">
+            <subfield code="a">volume</subfield>
+            <subfield code="b">nc</subfield>
+            <subfield code="2">rdacarrier</subfield>
+          </datafield>
+          <datafield ind1="0" ind2=" " tag="362">
+            <subfield code="a">v.1 (1840) -  (1864)</subfield>
+          </datafield>
+          <datafield ind1="0" ind2=" " tag="510">
+            <subfield code="a">North, J.S. Scottish newspapers, 7229.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="561">
+            <subfield code="a">From the Longforgan Free Church Minister's Library</subfield>
+            <subfield code="5">(StEdU : Lon.433)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="563">
+            <subfield code="a">Binding: Half leather covered board with gilt-stamped cover ornamentation "Longforgan Free Church Minister's Library"</subfield>
+            <subfield code="5">(StEdU : Lon.433)</subfield>
+          </datafield>
+          <datafield ind1="1" ind2=" " tag="590">
+            <subfield code="a">Longforgan Free Church (StEdU : Lon.433)</subfield>
+          </datafield>
+          <datafield ind1="1" ind2=" " tag="590">
+            <subfield code="a">Funk (StEdU : Lon.433)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2="0" tag="650">
+            <subfield code="a">Church and state</subfield>
+            <subfield code="z">Scotland</subfield>
+            <subfield code="v">Periodicals.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2="0" tag="651">
+            <subfield code="a">Edinburgh (Scotland)</subfield>
+            <subfield code="v">Newspapers.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2="0" tag="651">
+            <subfield code="a">Edinburgh (Scotland)</subfield>
+            <subfield code="v">Periodicals.</subfield>
+          </datafield>
+          <datafield ind1="1" ind2=" " tag="700">
+            <subfield code="a">Miller, Hugh,</subfield>
+            <subfield code="d">1802-1856,</subfield>
+            <subfield code="e">editor.</subfield>
+          </datafield>
+          <datafield ind1="2" ind2=" " tag="710">
+            <subfield code="a">Longforgan Free Church (Scotland),</subfield>
+            <subfield code="e">former owner.</subfield>
+            <subfield code="5">StEdU : Lon.433</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="953">
+            <subfield code="a">SPECCOLLFACET</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450160002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF888</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">1</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.14:no.1396(1853:Jan.1)-v.14:no.1504(1853:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450400002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF879</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">2</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.346(1843:May4)-v.5:no.486(1844:Jul.31). Wanting v.4:no.408; v.5:no.467; v.5:no.484.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450370002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF874</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">11</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.368(1843:Jul.5)-v.4:no.375(1843:Jul.29). Wanting v.4:no.367.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411000002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF873</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">12</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.358(1843:Jun.1)-v.4:no.366(1843:Jun.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450190002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF887</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">13</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.13:no.1288(1852:Jan.3)-v.13:no.1395(1852:Dec.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411420002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF865</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">14</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.284(1842:Oct.1)-v.3:no.292(1842:Oct.29). Wanting v.3:no.285.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411090002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF871</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">15</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.337(1843:Apr.1)-v.4:no.345(1843:Apr.29). Wanting v.4:no.338.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411240002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF891</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">16</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.17:no.1721(1856:Jan.2)-v.17:no.1829(1856:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411270002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF889</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">17</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.15:no.1505(1854:Jan.4)-v.15:no.1612(1854:Dec.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411510002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF862</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">18</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.258(1842:Jul.2)-v.3:no.266(1842:Jul.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411150002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF869</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">19</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.319(1843:Feb.1)-v.4;no.326(1843:Feb.25)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411450002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF864</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">20</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.276(1842:Sept.3)-v.3:no.283(1842:Sept.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450220002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF886</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">3</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.12:no.1179(1851:Jan.1)-v.12:no.1287(1851:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411180002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF868</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">21</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.311(1843:Jan.4)-v.4:no.318(1843:Jan.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411630002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF858</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">22</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.223(1842:Mar.2)-v.3:no.231(1842:Mar.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411540002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF861</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">23</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.250(1842:Jun.4)-v.3:no:257(1842:Jun.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411030002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF867</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">24</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.302(1842:Dec.3)-v.3:no.310(1842:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411600002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF859</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">25</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.232(1842:Apr.2)-v.3:no.240(1842:Apr.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411060002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF872</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">26</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.347(1843:May6)-v.4:no.357(1843:May30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450730002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF857</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">27</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.216(1842:Feb.5)-v3:no.222(1842:Feb.26)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450550002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF897</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">28</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.23:no.2372(1862:Jan.2)-v.23:no.2531(1862:Dec.30). Includes nos.2263 and 2371 bound at end of volume.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411570002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF860</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">29</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.241(1842:May4)-v:3:no.246(1/2)(1842:May24),v:3:no.248-1(1842:May26)-v:3:no.249(1842:May28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411480002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF863</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">30</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.267(1842:Aug.3)-v.3:no.273(1842:Aug.24). Wanting v.3:no.269; v.3:no.274-275.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450250002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF884</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">4</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.10:no.963(1849:Jan.3)-v.10:no.1070(1849:Dec.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450580002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF896</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">31</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.22:no.2264(1861:Jan.5)-v.22:no.2370(1861:Dec.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450460002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF877</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">32</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.394(1843:Oct.4)-v.4:no.403(1843:Oct.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450490002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF876</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">33</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.385(1843:Sept.2)-v.4:no.388(1843:Sept.13). Wanting v.4:no.388-393.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411120002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF870</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">34</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.327(1843:Mar.1)-v.4:no.336(1843:Mar29). Wanting v.4:no.328.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411300002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF883</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">35</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.9:no.854(1848:Jan.1)-v.9:no.962(1848:Dec.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450610002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF895</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">36</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.21:no.2155(1860:Jan.4)-v.21:no.2262(1860:Dec.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450520002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF875</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">37</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.4:no.376(1843:Aug.2)-v.4:no.384(1843:Aug.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450700002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF892</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">38</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.18:no.1830(1857:Jan.3)-v.18:no.1937(1857:Dec.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411210002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF890</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">39</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.16:no.1613(1855:Jan.3)-v.16:no.1720(1855:Dec.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411390002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF866</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">40</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.293(1842:Nov.2)-v.3:no.301(1842:Nov.30)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268410760002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF856</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">5</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.206(1842:Jan.1)-v.3:no.214(1842:Jan.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411360002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF881</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">41</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.6:no.530(1845:Jan.1)-v.6:no.637(1845:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268411330002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF882</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">42</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.7:no.638(1846:Jan.3)--v.8:no.856(1847:Dec.29). Wanting v.7, no.664.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450670002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF893</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">43</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.19:no.1938(1857:Jan.2)-v.19:no.2045(1857:Dec.29)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450640002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF894</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">44</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.20:no.2046(1859:Jan.1)-v.20:no.2154(1859:Dec.31)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">2280743390002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">NEWCOL</subfield>
+            <subfield code="c">New College Library  (Special Collections)</subfield>
+            <subfield code="d">Lon.433</subfield>
+            <subfield code="e">check_holdings</subfield>
+            <subfield code="j">NEWCOL-SPC</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">45</subfield>
+            <subfield code="q">New College Library</subfield>
+            <subfield code="t">1st January 1842 - 31st July 1844 (2 vols.)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450280002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF885</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">6</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.11:no.1071(1850:Jan.2)-v.11:no.1178(1850:Dec.28)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450430002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF878</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">7</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.3:no.206(1842:Jan.1)--v.4:no.345(1843:Apr.29). Wanting v.3:no.207; v.3:no.252; v.3:no.300; v.4:no.330.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450310002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF898</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">8</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.24:no.2532(1863:Jan.1)-v.25:no.2717(1864:Feb.27)</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268410790002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF855</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">9</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.1:no.1(1840:Jan.15)- v.1:no.50(1840:Jul.4); v.1:no.61(1840:Aug.12)-v.2:no.205(1841:Dec.29). Wanting nos.12-13; 18; 51-60; 124; 172; 200.</subfield>
+          </datafield>
+          <datafield ind1=" " ind2=" " tag="AVA">
+            <subfield code="0">9923254553502466</subfield>
+            <subfield code="8">22268450340002466</subfield>
+            <subfield code="a">44UOE_INST</subfield>
+            <subfield code="b">LX</subfield>
+            <subfield code="c">Enquire at Centre for Research Collections</subfield>
+            <subfield code="d">NCLFF880</subfield>
+            <subfield code="e">available</subfield>
+            <subfield code="f">1</subfield>
+            <subfield code="g">0</subfield>
+            <subfield code="j">LX1-NCSPCF</subfield>
+            <subfield code="k">8</subfield>
+            <subfield code="p">10</subfield>
+            <subfield code="q">University Collections Facility</subfield>
+            <subfield code="t">v.5:no.422(1844:Jan.3)-v.5:no.529(1844:Dec.28)</subfield>
+          </datafield>
+        </record>
+      </recordData>
+      <recordIdentifier>9923254553502466</recordIdentifier>
+      <recordPosition>1</recordPosition>
+    </record>
+  </records>
+  <extraResponseData xmlns:xb="http://www.exlibris.com/repository/search/xmlbeans/">
+    <xb:exact>true</xb:exact>
+    <xb:responseDate>2023-08-08T08:34:20+0100</xb:responseDate>
+  </extraResponseData>
+</searchRetrieveResponse>
