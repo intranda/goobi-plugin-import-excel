@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/">
-  <version>1.2</version>
-  <numberOfRecords>1</numberOfRecords>
-  <records>
-    <record>
-      <recordSchema>marcxml</recordSchema>
-      <recordPacking>xml</recordPacking>
       <recordData>
         <record xmlns="http://www.loc.gov/MARC21/slim">
           <leader>01464cas a2200361 i 4500</leader>
@@ -836,12 +829,3 @@
           </datafield>
         </record>
       </recordData>
-      <recordIdentifier>9923254553502466</recordIdentifier>
-      <recordPosition>1</recordPosition>
-    </record>
-  </records>
-  <extraResponseData xmlns:xb="http://www.exlibris.com/repository/search/xmlbeans/">
-    <xb:exact>true</xb:exact>
-    <xb:responseDate>2023-08-08T08:34:20+0100</xb:responseDate>
-  </extraResponseData>
-</searchRetrieveResponse>

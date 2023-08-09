@@ -1246,7 +1246,18 @@
     <Name>CaptureNotes</Name>
     <language name="de">Capture Notes</language>
     <language name="en">Capture Notes</language>
-  </MetadataType>                       
+  </MetadataType> 
+  
+  <!-- Groups -->
+  <Group>
+  	<Name>VolumeData</Name>
+  	<language name="de">Volume data</language>
+    <language name="en">Volume data</language>
+  	<metadata num="*">CatalogIDDigital</metadata>
+  	<metadata num="*">TitleDocMain</metadata>
+  	<metadata num="*">CurrentNo</metadata>
+  </Group>
+                        
   <!-- Subjects start -->
   <DocStrctType>
     <Name>BuchspiegelVorne</Name>
@@ -1631,6 +1642,7 @@
     <language name="en">Periodical</language>
     <language name="es">Periódico</language>
     <allowedchildtype>PeriodicalVolume</allowedchildtype>
+    <group num="*">VolumeData</group>
     <metadata num="1o">URN</metadata>
     <metadata DefaultDisplay="true" num="*">ISSN</metadata>
     <metadata num="*">CatalogIDSuccessorPeriodical</metadata>
@@ -4960,6 +4972,32 @@
         <identifierReplacement>s/\(.+\)//g</identifierReplacement>
         <separateEntries>true</separateEntries>
       </Metadata>
+      
+      <Group>
+      	<Name>VolumeData</Name>
+      	<Metadata>
+	      	<Name>CatalogIDDigital</Name>
+	      	<field>
+	      		<fieldMainTag>AVA</fieldMainTag>
+	      		<fieldSubTag>8</fieldSubTag>
+	      	</field>
+	  	</Metadata>
+	  	<Metadata>
+	      	<Name>TitleDocMain</Name>
+	      	<field>
+	      		<fieldMainTag>AVA</fieldMainTag>
+	      		<fieldSubTag>c</fieldSubTag>
+	      	</field>
+	  	</Metadata>
+	  	<Metadata>
+	      	<Name>CurrentNo</Name>
+	      	<field>
+	      		<fieldMainTag>AVA</fieldMainTag>
+	      		<fieldSubTag>p</fieldSubTag>
+	      	</field>
+	  	</Metadata>
+      </Group>
+      
       <!-- Subjects end -->
       <!-- Persons start -->
 

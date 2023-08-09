@@ -1,17 +1,22 @@
 package de.intranda.goobi.plugins.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import lombok.Data;
+import spark.utils.StringUtils;
 
 @Data
 public class ExcelConfig {
 
+    private String anchorPublicationType;
     private String publicationType;
     private String collection;
     private int firstLine;
@@ -22,7 +27,7 @@ public class ExcelConfig {
     private int rowDataEnd;
     private List<MetadataMappingObject> metadataList = new ArrayList<>();
     private List<PersonMappingObject> personList = new ArrayList<>();
-    private List<PersonMappingObject> personWithRoleList = new ArrayList<>();    
+    private List<PersonMappingObject> personWithRoleList = new ArrayList<>();
     private List<GroupMappingObject> groupList = new ArrayList<>();
     private String roleField;
     private String identifierHeaderName;
@@ -33,6 +38,7 @@ public class ExcelConfig {
     private String searchField;
 
     private String processtitleRule;
+    private String replacement;
 
     private String imageFolderPath;
     private String imageFolderHeaderName;
@@ -46,6 +52,12 @@ public class ExcelConfig {
     private String imageHandlingStrategy; //copy, move or ignore
     private boolean failOnMissingImageFiles = false;
 
+    private boolean splittingAllowed;
+    private String splittingDelimiter;
+    
+    private Map<String, VolumeGenerator> volumeGenerators = new HashMap<>();
+
+
     /**
      * loads the &lt;config&gt; block from xml file
      * 
@@ -57,6 +69,7 @@ public class ExcelConfig {
             return;
         }
 
+        anchorPublicationType = xmlConfig.getString("/anchorPublicationType", null);
         publicationType = xmlConfig.getString("/publicationType", "Monograph");
         collection = xmlConfig.getString("/collection", "");
         firstLine = xmlConfig.getInt("/firstLine", 1);
@@ -67,7 +80,11 @@ public class ExcelConfig {
         rowDataStart = xmlConfig.getInt("/rowDataStart", 2);
         rowDataEnd = xmlConfig.getInt("/rowDataEnd", 20000);
 
+        splittingAllowed = xmlConfig.getBoolean("/metadatasplitallowed", false);
+        splittingDelimiter = xmlConfig.getString("/metadataDelimiter", ";");
+
         processtitleRule = xmlConfig.getString("/processTitleRule", null);
+        replacement = xmlConfig.getString("/processTitleRule/@replacewith", "");
 
         List<HierarchicalConfiguration> iml = xmlConfig.configurationsAt("//importImages");
 
@@ -75,7 +92,7 @@ public class ExcelConfig {
 
             List<ConfigurationNode> attr = md.getRootNode().getAttributes("failOnMissingImageFiles");
 
-            if (attr != null && attr.size() > 0) {
+            if (attr != null && !attr.isEmpty()) {
                 failOnMissingImageFiles = attr.get(0).getValue().toString().contentEquals("true");
             }
 
@@ -93,25 +110,24 @@ public class ExcelConfig {
 
         runAsGoobiScript = xmlConfig.getBoolean("/runAsGoobiScript", true);
         listSplitChar = xmlConfig.getString("/splitList", null);
-        
+
         roleField = xmlConfig.getString("/roleField", null);
-        
+
         List<HierarchicalConfiguration> mml = xmlConfig.configurationsAt("//metadata");
         for (HierarchicalConfiguration md : mml) {
             metadataList.add(getMetadata(md));
         }
-        
+
         List<HierarchicalConfiguration> mmr = xmlConfig.configurationsAt("//role");
         for (HierarchicalConfiguration md : mmr) {
             rolesList.add(getRoleMetadata(md));
         }
 
-       
         List<HierarchicalConfiguration> pml = xmlConfig.configurationsAt("//person");
         for (HierarchicalConfiguration md : pml) {
             personList.add(getPersons(md));
         }
-        
+
         List<HierarchicalConfiguration> pmlr = xmlConfig.configurationsAt("//person-role");
         for (HierarchicalConfiguration md : pmlr) {
             personWithRoleList.add(getPersonsWithRoles(md));
@@ -146,26 +162,34 @@ public class ExcelConfig {
             opacHeader = xmlConfig.getString("/opacHeader", "");
             searchField = xmlConfig.getString("/searchField", "12");
         }
+        
+        List<HierarchicalConfiguration> volGenList = xmlConfig.configurationsAt("/volumeGeneration");
+        for (HierarchicalConfiguration volGenConfig : volGenList) {
+            String anchorType = volGenConfig.getString("@type", null);
+            if(StringUtils.isNotBlank(anchorType)) {
+                String volumeType = volGenConfig.getString("./volumeType");
+                String mdGroupType = volGenConfig.getString("./metadataGroupType");
+                this.volumeGenerators.put(anchorType, new VolumeGenerator(volumeType, mdGroupType));
+            }
+        }
     }
 
     private MetadataMappingObject getMetadata(HierarchicalConfiguration md) {
         String rulesetName = md.getString("@ugh");
         String propertyName = md.getString("@property");
         Integer columnNumber = md.getInteger("@column", null);
-        //        Integer identifierColumn = md.getInteger("@identifier", null);
         String headerName = md.getString("@headerName", null);
         String normdataHeaderName = md.getString("@normdataHeaderName", null);
         String docType = md.getString("@docType", "child");
-
+        boolean splitAllowed = md.getBoolean("@split", false);
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setExcelColumn(columnNumber);
-        //        mmo.setIdentifierColumn(identifierColumn);
         mmo.setPropertyName(propertyName);
         mmo.setRulesetName(rulesetName);
         mmo.setHeaderName(headerName);
         mmo.setNormdataHeaderName(normdataHeaderName);
         mmo.setDocType(docType);
-
+        mmo.setSplittingAllowed(splitAllowed);
         mmo.setSearchField(md.getString("@opacSearchField", null));
         return mmo;
     }
@@ -181,7 +205,7 @@ public class ExcelConfig {
         mmo.setDocType(docType);
         return mmo;
     }
-    
+
     private PersonMappingObject getPersons(HierarchicalConfiguration md) {
         String rulesetName = md.getString("@ugh");
         Integer firstname = md.getInteger("firstname", null);
@@ -196,9 +220,9 @@ public class ExcelConfig {
         boolean firstNameIsFirstPart = md.getBoolean("splitName/@firstNameIsFirstPart", false);
         String splitList = md.getString("splitList", null);
         String gndIds = md.getString("gndIds", null);
-        
+
         String docType = md.getString("@docType", "child");
-        String useRoleField =  md.getString("useRoleField", null);
+        String useRoleField = md.getString("useRoleField", null);
 
         PersonMappingObject pmo = new PersonMappingObject();
         pmo.setFirstnameColumn(firstname);
@@ -218,7 +242,7 @@ public class ExcelConfig {
         pmo.setSplitList(splitList);
         pmo.setGndIds(gndIds);
         pmo.setUseRoleField(useRoleField);
-        
+
         return pmo;
 
     }
@@ -238,9 +262,9 @@ public class ExcelConfig {
         String splitList = md.getString("splitList", null);
         String splitRole = md.getString("splitRole", null);
         String gndIds = md.getString("gndIds", null);
-        
+
         String docType = md.getString("@docType", "child");
-        
+
         PersonMappingObject pmo = new PersonMappingObject();
         pmo.setFirstnameColumn(firstname);
         pmo.setLastnameColumn(lastname);
@@ -259,8 +283,12 @@ public class ExcelConfig {
 
         pmo.setSplitList(splitList);
         pmo.setGndIds(gndIds);
-        
+
         return pmo;
 
+    }
+
+    public Optional<VolumeGenerator> getVolumeGenerator(String anchorType) {
+        return Optional.ofNullable(this.volumeGenerators.get(anchorType));
     }
 }

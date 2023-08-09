@@ -3,20 +3,11 @@
 		<!-- which workflow template shall be used -->
 		<template>*</template>
 
+		<collection>mycollection</collection>
+
+		<useOpac>true</useOpac>
 		<opacName>MockOpac</opacName>
 		<searchField>12</searchField>
-		
-		<!-- publication type to create -->
-		<publicationType>Monograph</publicationType>
-
-		<!-- which digital collection to use -->
-		<collection>mycollection</collection>
-		
-		<!-- define if a catalogue shall get requested to import metadata -->
-		<useOpac>true</useOpac>
-		<!-- which catalogue to use (as default) -->
-		
-		<!-- which catalogue to use per record; if missing the default will be used -->
 		<opacHeader>Catalogue</opacHeader>
 		
 
@@ -30,24 +21,16 @@
 		<!-- define which column is the one to use for catalogue requests -->
 		<identifierHeaderName>Identifier</identifierHeaderName>
 
-		<!-- Rules to generate the process title, the same syntax as in goobi_projects.xml can be used. 
-			Use the column names to get the right metadata values. 
-			If the field is missing or empty, the value of CatalogIDDigital is used. -->
-		<processTitleRule>2-Titel+'_'+PPN-O</processTitleRule>
+		<processTitleRule replacewith="_">Identifier+'_'+{meta.CatalogIDDigital}</processTitleRule>
 
-        <importImages failOnMissingImageFiles="true">
-    		<!-- prefix path to the image folder. Can be empty or missing if the import doesn't contain images or if the excel field contains absolute path  -->
-    		<imageFolderPath>/opt/digiverso/images/</imageFolderPath>
-    		<!-- define which column contains the image folder name. Can be combined with <imageFolderPath> prefix or an absolute path. 
-    		If the field is missing, empty or does not contain an existing directory, no images will be imported -->
-    		<imageFolderHeaderName>images</imageFolderHeaderName>
-            <!-- Image handling strategy. Valid values are "move", "copy" or "ignore".  -->
-            <imageHandlingStrategy>move</imageHandlingStrategy>
-        </importImages>
-
-
-		<!-- Run the import as GoobiScript -->
-		<runAsGoobiScript>true</runAsGoobiScript>
+		<volumeGeneration type="Periodical">
+			<volumeType>PeriodicalVolume</volumeType>
+			<metadataGroupType>VolumeData</metadataGroupType>
+		</volumeGeneration>
+		<volumeGeneration type="MultiVolumeWork">
+			<volumeType>Volume</volumeType>
+			<metadataGroupType>VolumeData</metadataGroupType>
+		</volumeGeneration>
 
 		<!-- Overwrite any existing processes -->
 		<replaceExistingProcesses>false</replaceExistingProcesses>
