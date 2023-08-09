@@ -197,16 +197,17 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             try {
                 ds = myRdf.getDigitalDocument().getLogicalDocStruct();
                 if (ds.getType().isAnchor()) {
+
+                    Optional<VolumeGenerator> volumeGenerator = this.config.getVolumeGenerator(ds.getType().getName());
+                    if (volumeGenerator.isPresent()) {
+                        new ArrayList<>(ds.getAllChildren()).forEach(child -> child.getParent().removeChild(child));
+                        generateVolumes(myRdf, ds, volumeGenerator.get());
+                    }
+
                     if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
-                        Optional<VolumeGenerator> volumeGenerator = this.config.getVolumeGenerator(ds.getType().getName());
-                        if(volumeGenerator.isPresent()) {                            
-                            generateVolumes(myRdf, ds, volumeGenerator.get());
-                        }
-                        if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
-                            throw new ImportObjectException(
-                                    "Could not import record " + identifier
-                                            + ". Found anchor file, but no children. Try to import the child record.");
-                        }
+                        throw new ImportObjectException(
+                                "Could not import record " + identifier
+                                        + ". Found anchor file, but no children. Try to import the child record.");
                     }
                 }
             } catch (PreferencesException | TypeNotAllowedAsChildException e1) {
@@ -222,7 +223,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
         return myRdf;
     }
-
 
     public void generateVolumes(Fileformat myRdf, DocStruct ds, VolumeGenerator volumeGenerator)
             throws PreferencesException, TypeNotAllowedAsChildException {
@@ -303,7 +303,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                     getAnchor(ff).addChild(logical);
                     VariableReplacer vr = new VariableReplacer(ff.getDigitalDocument(), prefs, null, null);
-                    
+
                     addCollection(logical, getConfig().getCollection());
                     for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
                         addMappedMetadata(io, timestamp, headerOrder, rowMap, logical, getAnchor(ff), mmo, vr);
@@ -648,7 +648,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     }
                 } else if ("timestamp".equalsIgnoreCase(myString)) {
                     titleValue.append(timestamp);
-                } else if(myString.startsWith("(") || myString.startsWith("{")) {
+                } else if (myString.startsWith("(") || myString.startsWith("{")) {
                     titleValue.append(vr.replace(myString));
                 } else {
                     String s = rowMap.get(headerOrder.get(myString));
@@ -662,7 +662,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             // remove non-ascii characters for the sake of TIFF header limits
             String regex = this.configHelper.getProcessTitleReplacementRegex();
             String filteredTitle = newTitle.replaceAll(regex, config.getReplacement());
-            
+
             // set new process title
             fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
             io.setProcessTitle(filteredTitle);
