@@ -292,21 +292,26 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Fileformat ff = generateFileformat(answer, rec);
                 createPhysicalStructure(ff);
 
-                Optional.ofNullable(getAnchor(ff)).ifPresent(anchor -> addCollection(anchor, getConfig().getCollection()));
+                DocStruct anchor = getAnchor(ff);
                 List<DocStruct> allVolumes = new ArrayList<>(getLogicalDocStructs(ff));
-                allVolumes.forEach(v -> getAnchor(ff).removeChild(v));
+                if(anchor != null) {
+                    addCollection(anchor, getConfig().getCollection());
+                    allVolumes.forEach(anchor::removeChild);
+                }
                 for (DocStruct logical : allVolumes) {
                     String timestamp = Long.toString(System.currentTimeMillis());
 
                     ImportObject io = new ImportObject();
                     io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
-                    getAnchor(ff).addChild(logical);
+                    if(anchor != null) {                        
+                        anchor.addChild(logical);
+                    }
                     VariableReplacer vr = new VariableReplacer(ff.getDigitalDocument(), prefs, null, null);
 
                     addCollection(logical, getConfig().getCollection());
                     for (MetadataMappingObject mmo : getConfig().getMetadataList()) {
-                        addMappedMetadata(io, timestamp, headerOrder, rowMap, logical, getAnchor(ff), mmo, vr);
+                        addMappedMetadata(io, timestamp, headerOrder, rowMap, logical, anchor, mmo, vr);
                     }
                     if (StringUtils.isBlank(io.getProcessTitle())) {
                         String title = logical.getAllMetadataByType(prefs.getMetadataTypeByName(CATALOGIDDIGITAL))
@@ -340,7 +345,9 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     }
 
-                    getAnchor(ff).removeChild(logical);
+                    if(anchor != null) {                        
+                        anchor.removeChild(logical);
+                    }
                     answer.add(io);
                 }
 
