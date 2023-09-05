@@ -200,7 +200,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                     Optional<VolumeGenerator> volumeGenerator = this.config.getVolumeGenerator(ds.getType().getName());
                     if (volumeGenerator.isPresent()) {
-                        new ArrayList<>(ds.getAllChildren()).forEach(child -> child.getParent().removeChild(child));
+                        new ArrayList<>(Optional.ofNullable(ds.getAllChildren()).orElse(Collections.emptyList())).forEach(child -> child.getParent().removeChild(child));
                         generateVolumes(myRdf, ds, volumeGenerator.get());
                     }
 
