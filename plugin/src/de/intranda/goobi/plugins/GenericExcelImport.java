@@ -51,13 +51,13 @@ import de.intranda.goobi.plugins.util.GroupMappingObject;
 import de.intranda.goobi.plugins.util.ImportObjectException;
 import de.intranda.goobi.plugins.util.MetadataMappingObject;
 import de.intranda.goobi.plugins.util.PersonMappingObject;
+import de.intranda.goobi.plugins.util.VariableReplacer;
 import de.intranda.goobi.plugins.util.VolumeGenerator;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.forms.MassImportForm;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
-import de.intranda.goobi.plugins.util.VariableReplacer;
 import de.sub.goobi.helper.exceptions.ImportPluginException;
 import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.persistence.managers.ProcessManager;
@@ -65,7 +65,7 @@ import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -83,7 +83,7 @@ import ugh.exceptions.UGHException;
 import ugh.exceptions.WriteException;
 import ugh.fileformats.mets.MetsMods;
 
-@Log4j
+@Log4j2
 @Data
 @PluginImplementation
 public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
@@ -165,17 +165,12 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             throw new ImportPluginException("Opac plugin for catalogue " + catalogue + " not found. Abort.");
         }
         Fileformat myRdf = null;
-        DocStruct ds = null;
         if ("intranda_opac_json".equals(myImportOpac.getTitle())) {
 
             try {
                 Method search = loadSearchMethod(rowMap, headerOrder, myImportOpac);
                 myRdf = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
-                try { //NOSONAR
-                    ds = myRdf.getDigitalDocument().getLogicalDocStruct();
-                } catch (Exception e) {
-                    log.error(e);
-                }
+
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new ImportPluginException("Cannot perform import: Search method of configured OPAC plugin not found", e);
             }
@@ -195,19 +190,19 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             }
 
             try {
-                ds = myRdf.getDigitalDocument().getLogicalDocStruct();
+                DocStruct ds = myRdf.getDigitalDocument().getLogicalDocStruct();
                 if (ds.getType().isAnchor()) {
 
                     Optional<VolumeGenerator> volumeGenerator = this.config.getVolumeGenerator(ds.getType().getName());
                     if (volumeGenerator.isPresent()) {
-                        new ArrayList<>(Optional.ofNullable(ds.getAllChildren()).orElse(Collections.emptyList())).forEach(child -> child.getParent().removeChild(child));
+                        new ArrayList<>(Optional.ofNullable(ds.getAllChildren()).orElse(Collections.emptyList()))
+                        .forEach(child -> child.getParent().removeChild(child));
                         generateVolumes(myRdf, ds, volumeGenerator.get());
                     }
 
                     if (ds.getAllChildren() == null || ds.getAllChildren().isEmpty()) {
                         throw new ImportObjectException(
-                                "Could not import record " + identifier
-                                        + ". Found anchor file, but no children. Try to import the child record.");
+                                "Could not import record " + identifier + ". Found anchor file, but no children. Try to import the child record.");
                     }
                 }
             } catch (PreferencesException | TypeNotAllowedAsChildException e1) {
@@ -269,32 +264,30 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 }
             }
         }
-        Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
-        return search;
+        return opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<ImportObject> generateFiles(List<Record> records) {
         List<ImportObject> answer = new ArrayList<>();
 
         if (StringUtils.isBlank(workflowTitle)) {
             workflowTitle = form.getTemplate().getTitel();
-            config = null;
-            config = getConfig();
         }
+        config = null;
+        config = getConfig();
 
         for (Record rec : records) { //NOSONAR
             // generate a mets file
             try {
                 Map<String, Integer> headerOrder = getHeaderOrder(rec);
                 Map<Integer, String> rowMap = getRowMap(rec);
-                Fileformat ff = generateFileformat(answer, rec);
+                Fileformat ff = generateFileformat(rec);
                 createPhysicalStructure(ff);
 
                 DocStruct anchor = getAnchor(ff);
                 List<DocStruct> allVolumes = new ArrayList<>(getLogicalDocStructs(ff));
-                if(anchor != null) {
+                if (anchor != null) {
                     addCollection(anchor, getConfig().getCollection());
                     allVolumes.forEach(anchor::removeChild);
                 }
@@ -304,7 +297,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     ImportObject io = new ImportObject();
                     io.setImportReturnValue(ImportReturnValue.ExportFinished);
 
-                    if(anchor != null) {                        
+                    if (anchor != null) {
                         anchor.addChild(logical);
                     }
                     VariableReplacer vr = new VariableReplacer(ff.getDigitalDocument(), prefs, null, null);
@@ -345,7 +338,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     }
 
-                    if(anchor != null) {                        
+                    if (anchor != null) {
                         anchor.removeChild(logical);
                     }
                     answer.add(io);
@@ -356,7 +349,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 ImportObject io = new ImportObject();
                 answer.add(io);
                 io.setErrorMessage(e.getMessage());
-                io.setImportReturnValue(ImportReturnValue.NoData); //TODO: make value depend on exception
+                io.setImportReturnValue(ImportReturnValue.NoData);
             } catch (UGHException e) {
                 log.error(e);
                 ImportObject io = new ImportObject();
@@ -497,8 +490,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
     }
 
-    public Fileformat generateFileformat(List<ImportObject> answer, Record rec)
-            throws ImportPluginException, ImportObjectException {
+    public Fileformat generateFileformat(Record rec) throws ImportPluginException, ImportObjectException {
         Fileformat ff = null;
 
         if (!config.isUseOpac()) {
@@ -539,8 +531,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
 
                 Integer columnNumber = getHeaderOrder(rec).get(config.getIdentifierHeaderName());
                 if (columnNumber == null) {
-                    throw new ImportPluginException("Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName()
-                            + "' not found in excel file.");
+                    throw new ImportPluginException(
+                            "Cannot request catalogue, identifier column '" + config.getIdentifierHeaderName() + "' not found in excel file.");
                 }
                 String catalogueIdentifier = getRowMap(rec).get(getHeaderOrder(rec).get(config.getIdentifierHeaderName()));
                 if (StringUtils.isBlank(catalogueIdentifier)) {
@@ -557,12 +549,14 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return ff;
     }
 
+    @SuppressWarnings("unchecked")
     public Map<Integer, String> getRowMap(Record rec) {
         Object tempObject = rec.getObject();
         List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
         return (Map<Integer, String>) list.get(1);
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Integer> getHeaderOrder(Record rec) {
         Object tempObject = rec.getObject();
         List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
@@ -606,7 +600,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
             try { //NOSONAR
-                  // splitting is configured for this field
+                // splitting is configured for this field
                 if (config.isSplittingAllowed() && mmo.isSplittingAllowed()) {
                     String delimiter = config.getSplittingDelimiter();
                     String[] values = value.split(delimiter);
@@ -650,8 +644,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 } else if ("Signatur".equalsIgnoreCase(myString) || "Shelfmark".equalsIgnoreCase(myString)) {
                     if (StringUtils.isNotBlank(rowMap.get(headerOrder.get(myString)))) {
                         // replace white spaces with dash, remove other special characters
-                        titleValue.append(
-                                rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
+                        titleValue.append(rowMap.get(headerOrder.get(myString)).replace(" ", "-").replace("/", "-").replaceAll("[^\\w-]", ""));
                     }
                 } else if ("timestamp".equalsIgnoreCase(myString)) {
                     titleValue.append(timestamp);
@@ -1053,7 +1046,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     } else {
                         try {
                             StorageProvider.getInstance()
-                                    .copyFile(currentData, Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()));
+                            .copyFile(currentData, Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()));
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
