@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets OBJID="" xsi:schemaLocation="http://www.loc.gov/standards/premis/ http://www.loc.gov/standards/premis/v2/premis-v2-0.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/standards/mix/ http://www.loc.gov/standards/mix/mix.xsd" xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:goobi="http://meta.goobi.org/v1.5.1/" xmlns:xlink="http://www.w3.org/1999/xlink">
+   <mets:metsHdr CREATEDATE="2024-03-13T14:52:00Z">
+      <mets:agent OTHERTYPE="SOFTWARE" ROLE="CREATOR" TYPE="OTHER">
+         <mets:name>Goobi - 5a5e6 - 2024-03-11T08:51:44Z</mets:name>
+         <mets:note>Goobi</mets:note>
+      </mets:agent>
+   </mets:metsHdr>
+   <mets:dmdSec ID="DMDLOG_0054">
+      <mets:mdWrap MDTYPE="MODS">
+         <mets:xmlData>
+            <mods:mods>
+               <mods:extension>
+                  <goobi:goobi>
+                     <goobi:metadata name="TitleDocMain">The Witness.</goobi:metadata>
+                     <goobi:metadata name="DDC">052</goobi:metadata>
+                     <goobi:metadata name="PlaceOfPublication">Edinburgh :</goobi:metadata>
+                     <goobi:metadata name="PublisherName">J. Johnstone and R. Fairly,</goobi:metadata>
+                     <goobi:metadata name="CatalogIDDigital">9923254553502466</goobi:metadata>
+                     <goobi:metadata name="PublicationRun">v.1 (1840) -  (1864)</goobi:metadata>
+                     <goobi:metadata name="singleDigCollection">mycollection</goobi:metadata>
+                  </goobi:goobi>
+               </mods:extension>
+            </mods:mods>
+         </mets:xmlData>
+      </mets:mdWrap>
+   </mets:dmdSec>
+   <mets:structMap TYPE="LOGICAL">
+      <mets:div DMDID="DMDLOG_0054" ID="LOG_0108" TYPE="Periodical">
+         <mets:div ID="LOG_0109" TYPE="PeriodicalVolume">
+            <mets:mptr LOCTYPE="URL" xlink:href=""/>
+         </mets:div>
+      </mets:div>
+   </mets:structMap>
+</mets:mets>
