@@ -196,7 +196,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     Optional<VolumeGenerator> volumeGenerator = this.config.getVolumeGenerator(ds.getType().getName());
                     if (volumeGenerator.isPresent()) {
                         new ArrayList<>(Optional.ofNullable(ds.getAllChildren()).orElse(Collections.emptyList()))
-                        .forEach(child -> child.getParent().removeChild(child));
+                                .forEach(child -> child.getParent().removeChild(child));
                         generateVolumes(myRdf, ds, volumeGenerator.get());
                     }
 
@@ -600,7 +600,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         }
         if (StringUtils.isNotBlank(mmo.getRulesetName()) && StringUtils.isNotBlank(value)) {
             try { //NOSONAR
-                // splitting is configured for this field
+                  // splitting is configured for this field
                 if (config.isSplittingAllowed() && mmo.isSplittingAllowed()) {
                     String delimiter = config.getSplittingDelimiter();
                     String[] values = value.split(delimiter);
@@ -662,7 +662,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             // remove non-ascii characters for the sake of TIFF header limits
             String regex = this.configHelper.getProcessTitleReplacementRegex();
             String filteredTitle = newTitle.replaceAll(regex, config.getReplacement());
-
+            log.info("Generated process title {}", filteredTitle);
             // set new process title
             fileName = getImportFolder() + File.separator + filteredTitle + ".xml";
             io.setProcessTitle(filteredTitle);
@@ -1046,7 +1046,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     } else {
                         try {
                             StorageProvider.getInstance()
-                            .copyFile(currentData, Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()));
+                                    .copyFile(currentData, Paths.get(existingProcess.getImagesDirectory(), currentData.getFileName().toString()));
                         } catch (IOException | SwapException e) {
                             log.error(e);
                         }
