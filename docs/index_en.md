@@ -21,12 +21,12 @@ There is also a configuration file, which must be located at the following place
 /opt/digiverso/goobi/config/plugin_intranda_import_excel.xml
 ```
 
-
 ## Overview and functionality
 To use the import, the mass import area must be opened in the production templates and the plugin `intranda_import_excel` selected in the File upload import tab. An Excel file can then be uploaded and imported.
 
 The import then takes place line by line. A new process is created for each line and the configured rules are applied. If a valid data record has been created and the generated task title has not yet been assigned, the task is actually created and saved.
 
+![Selection of the plugin for performing the import](screen1_en.png)
 
 ## Configuration
 The configuration is done via the file `plugin_intranda_import_excel.xml`. This file can be adapted during operation.

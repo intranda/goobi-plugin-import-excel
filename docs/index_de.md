@@ -26,6 +26,7 @@ Um den Import zu nutzen, muss in den Produktionsvorlagen der Massenimportbereich
 
 Der Import erfolgt anschließend zeilenweise. Dabei wird für jede Zeile ein neuer Vorgang erzeugt und die konfigurierten Regeln angewendet. Wenn dabei ein valider Datensatz erzeugt wurde und der generierte Vorgangstitel noch nicht vergeben wurde, wird der Vorgang tatsächlich erzeugt und gespeichert.
 
+![Auswahl des Plugins zur Durchführung des Imports](screen1_de.png)
 
 ## Konfiguration
 Die Konfiguration erfolgt über die Datei `plugin_intranda_import_excel.xml`. Diese Datei kann im laufenden Betrieb angepasst werden.
