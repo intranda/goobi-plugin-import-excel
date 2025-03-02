@@ -11,7 +11,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import lombok.Data;
-import spark.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class ExcelConfig {
