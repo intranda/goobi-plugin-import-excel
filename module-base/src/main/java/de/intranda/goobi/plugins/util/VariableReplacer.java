@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,13 +44,10 @@ import javax.naming.ConfigurationException;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.text.StrTokenizer;
-import org.goobi.beans.Masterpiece;
-import org.goobi.beans.Masterpieceproperty;
+import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.Process;
 import org.goobi.beans.Step;
-import org.goobi.beans.Template;
-import org.goobi.beans.Templateproperty;
-import org.goobi.production.properties.ProcessProperty;
+import org.goobi.production.properties.DisplayProperty;
 import org.goobi.production.properties.PropertyParser;
 
 import de.sub.goobi.config.ConfigurationHelper;
@@ -358,13 +354,12 @@ public class VariableReplacer {
         if (this.process != null) {
             for (MatchResult r : findRegexMatches(REGEX_PRODUCT, inString)) {
                 String propertyTitle = r.group(1);
-                for (Masterpiece ws : this.process.getWerkstueckeList()) {
-                    for (Masterpieceproperty we : ws.getEigenschaftenList()) {
-                        if (we.getTitel().equalsIgnoreCase(propertyTitle)) {
-                            inString = inString.replace(r.group(), we.getWert());
-                            break;
-                        }
+                for (GoobiProperty we : process.getEigenschaftenList()) {
+                    if (we.getTitel().equalsIgnoreCase(propertyTitle)) {
+                        inString = inString.replace(r.group(), we.getWert());
+                        break;
                     }
+
                 }
             }
 
@@ -372,22 +367,21 @@ public class VariableReplacer {
 
             for (MatchResult r : findRegexMatches(REGEX_TEMPLATE, inString)) {
                 String propertyTitle = r.group(1);
-                for (Template v : this.process.getVorlagenList()) {
-                    for (Templateproperty ve : v.getEigenschaftenList()) {
-                        if (ve.getTitel().equalsIgnoreCase(propertyTitle)) {
-                            inString = inString.replace(r.group(), ve.getWert());
-                            break;
-                        }
+                for (GoobiProperty ve : process.getEigenschaftenList()) {
+                    if (ve.getTitel().equalsIgnoreCase(propertyTitle)) {
+                        inString = inString.replace(r.group(), ve.getWert());
+                        break;
                     }
                 }
+
             }
 
             // replace Prozesseigenschaft, usage: (process.PROPERTYTITLE)
 
             for (MatchResult r : findRegexMatches(REGEX_PROCESS, inString)) {
                 String propertyTitle = r.group(1);
-                List<ProcessProperty> ppList = PropertyParser.getInstance().getPropertiesForProcess(this.process);
-                for (ProcessProperty pe : ppList) {
+                List<DisplayProperty> ppList = PropertyParser.getInstance().getPropertiesForProcess(this.process);
+                for (DisplayProperty pe : ppList) {
                     if (pe.getName().equalsIgnoreCase(propertyTitle)) {
                         inString = inString.replace(r.group(), pe.getValue() == null ? "" : pe.getValue());
                         break;
@@ -413,6 +407,7 @@ public class VariableReplacer {
         }
 
         return inString;
+
     }
 
     /**
