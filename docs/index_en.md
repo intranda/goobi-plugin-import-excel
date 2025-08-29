@@ -226,7 +226,7 @@ The element `processTitleRule` is used to generate the operation title. The same
 <processTitleRule>'StaticPrefix_'+Identifier</processTitleRule>
 ```
 
-The `processTitleRule` can be provided with the additional parameter `replacewith`. The character specified here (e. g. `replacewith="_"`) replaces all special characters with this character.
+The `processTitleRule` can be provided with the additional parameter `replace`. The character specified here (e. g. `replace="_"`) replaces all special characters with this character.
 
 
 ### Transfer of images
