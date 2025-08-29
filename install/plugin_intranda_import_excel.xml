@@ -33,7 +33,7 @@
         <!-- Rules to generate the process title, the same syntax as in goobi_projects.xml can be used.
             Use the column names to get the right metadata values.
             If the field is missing or empty, the value of CatalogIDDigital is used. -->
-        <processTitleRule replacewith="_">2-Titel+'_'+PPN-O</processTitleRule>
+        <processTitleRule replace="_">2-Titel+'_'+PPN-O</processTitleRule>
 
         <metadatasplitallowed>true</metadatasplitallowed>
         <metadataDelimiter>;</metadataDelimiter>
