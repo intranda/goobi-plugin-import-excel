@@ -355,8 +355,8 @@ public class VariableReplacer {
             for (MatchResult r : findRegexMatches(REGEX_PRODUCT, inString)) {
                 String propertyTitle = r.group(1);
                 for (GoobiProperty we : process.getEigenschaftenList()) {
-                    if (we.getTitel().equalsIgnoreCase(propertyTitle)) {
-                        inString = inString.replace(r.group(), we.getWert());
+                    if (we.getPropertyName().equalsIgnoreCase(propertyTitle)) {
+                        inString = inString.replace(r.group(), we.getPropertyValue());
                         break;
                     }
 
@@ -368,8 +368,8 @@ public class VariableReplacer {
             for (MatchResult r : findRegexMatches(REGEX_TEMPLATE, inString)) {
                 String propertyTitle = r.group(1);
                 for (GoobiProperty ve : process.getEigenschaftenList()) {
-                    if (ve.getTitel().equalsIgnoreCase(propertyTitle)) {
-                        inString = inString.replace(r.group(), ve.getWert());
+                    if (ve.getPropertyName().equalsIgnoreCase(propertyTitle)) {
+                        inString = inString.replace(r.group(), ve.getPropertyValue());
                         break;
                     }
                 }

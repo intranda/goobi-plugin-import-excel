@@ -2,6 +2,8 @@ package de.intranda.goobi.plugins.util;
 
 public class ImportObjectException extends Exception {
 
+    private static final long serialVersionUID = 3898113788657552820L;
+
     public ImportObjectException() {
         super();
         // TODO Auto-generated constructor stub
@@ -27,5 +29,4 @@ public class ImportObjectException extends Exception {
         // TODO Auto-generated constructor stub
     }
 
-    
 }

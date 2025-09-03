@@ -217,7 +217,7 @@ Das Element `processTitleRule` dient zur Generierung des Vorgangstitel. Hier ste
 <processTitleRule>'StaticPrefix_'+Identifier</processTitleRule>
 ```
 
-Hierbei kann die `processTitleRule` mit dem zusätzlichen Parameter `replacewith` versehen werden. Das hierbei angegebene Zeichen (bspw. `replacewith="_"`) ersetzt alle Sonderzeichen durch ebendieses Zeichen.
+Hierbei kann die `processTitleRule` mit dem zusätzlichen Parameter `replace` versehen werden. Das hierbei angegebene Zeichen (bspw. `replace="_"`) ersetzt alle Sonderzeichen durch ebendieses Zeichen.
 
 
 ### Übernahme von Bildern

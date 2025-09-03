@@ -27,7 +27,6 @@ import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -444,7 +443,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Metadata md = new Metadata(prefs.getMetadataTypeByName(mmo.getRulesetName()));
                 md.setValue(value);
                 if (mmo.getNormdataHeaderName() != null) {
-                    md.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(mmo.getNormdataHeaderName())));
+                    md.setAuthorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(mmo.getNormdataHeaderName())));
                 }
                 group.addMetadata(md);
             }
@@ -475,7 +474,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 Person p = makePerson(pmo.getRulesetName(), firstname, lastname);
 
                 if (pmo.getNormdataHeaderName() != null) {
-                    p.setAutorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(pmo.getNormdataHeaderName())));
+                    p.setAuthorityFile("gnd", "http://d-nb.info/gnd/", rowMap.get(headerOrder.get(pmo.getNormdataHeaderName())));
                 }
                 group.addMetadata(p);
             }
@@ -589,6 +588,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         return Collections.emptyList();
     }
 
+    @SuppressWarnings("deprecation")
     public ImportObject addMappedMetadata(ImportObject io, String timestamp, Map<String, Integer> headerOrder, Map<Integer, String> rowMap,
             DocStruct logical, DocStruct anchor, MetadataMappingObject mmo, VariableReplacer vr) {
         String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
@@ -905,7 +905,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                                 }
 
                                 if (StringUtils.isNotEmpty(lstIds[i])) {
-                                    pNew.setAutorityFile("gnd", "http://d-nb.info/gnd/", lstIds[i]);
+                                    pNew.setAuthorityFile("gnd", "http://d-nb.info/gnd/", lstIds[i]);
                                 }
 
                                 if (anchor != null && "anchor".equals(pmo.getDocType())) {
@@ -928,7 +928,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             }
                         }
                         if (identifier != null) {
-                            p.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
+                            p.setAuthorityFile("gnd", "http://d-nb.info/gnd/", identifier);
                         }
 
                         if (anchor != null && "anchor".equals(pmo.getDocType())) {
@@ -972,7 +972,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         value = parseDateIfNecessary(value, md);
         md.setValue(value);
         if (identifier != null) {
-            md.setAutorityFile("gnd", "http://d-nb.info/gnd/", identifier);
+            md.setAuthorityFile("gnd", "http://d-nb.info/gnd/", identifier);
 
         }
         if (anchor != null && "anchor".equals(mmo.getDocType())) {
@@ -1123,9 +1123,29 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             for (int i = 0; i < numberOfCells; i++) {
                 Cell cell = headerRow.getCell(i);
                 if (cell != null) {
-                    cell.setCellType(CellType.STRING);
-                    String value = cell.getStringCellValue();
-                    headerOrder.put(value, i);
+                    String value = null;
+                    switch (cell.getCellType()) {
+                        case BOOLEAN:
+                            value = cell.getBooleanCellValue() ? "true" : "false";
+                            break;
+                        case FORMULA:
+                            value = cell.getRichStringCellValue().getString();
+                            break;
+                        case NUMERIC:
+                            value = String.valueOf((long) cell.getNumericCellValue());
+                            break;
+                        case STRING:
+                            value = cell.getStringCellValue();
+                            break;
+                        default:
+                            // none, error, blank
+                            value = "";
+                            break;
+                    }
+
+                    if (value != null) {
+                        headerOrder.put(value, i);
+                    }
                 }
             }
 
