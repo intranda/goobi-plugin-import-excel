@@ -257,7 +257,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         String value = rowMap.get(headerOrder.get(mmo.getHeaderName()));
                         if (StringUtils.isNotBlank(value)) {
                             setText.invoke(searchField, value);
-                            setSelectedField.invoke(searchField, mmo.getHeaderName());
+                            setSelectedField.invoke(searchField, value);
                         }
                     }
                 }
