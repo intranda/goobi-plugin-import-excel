@@ -3,6 +3,10 @@ title: Import von Datensätzen aus einer Excel-Datei
 identifier: intranda_import_excel
 published: true
 description: Dies ist die technische Dokumentation für das Plugin zum Import von Excel-Dateien.
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Import Plugin
 ---
 ## Einführung
 Die vorliegende Dokumentation beschreibt die Installation, die Konfiguration und den Einsatz des Plugins für den Massenimport von Datensätzen aus Excel-Dateien.
