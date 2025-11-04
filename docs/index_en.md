@@ -3,6 +3,10 @@ title: Importing records from an Excel file
 identifier: intranda_import_excel
 published: true
 description: This is the technical documentation for the plugin for importing Excel files.
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Import Plugin
 ---
 ## Introduction
 This documentation describes the installation, configuration and use of the plugin for mass importing data sets from Excel files.
