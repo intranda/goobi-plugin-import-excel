@@ -227,7 +227,7 @@ Hierbei kann die `processTitleRule` mit dem zusätzlichen Parameter `replace` ve
 ### Übernahme von Bildern
 Mit Hilfe der Elemente `imageFolderHeaderName`, `imageFolderPath` und `moveFiles` können zusätzlich zu den Metadaten auch Bilder importiert werden. In `imageFolderHeaderName` wird hierfür der Spaltenname eingetragen, in dem in der Excel-Datei die Ordnernamen zu finden sind, die die Bilder enthalten. Dort kann entweder ein absoluter Pfad oder auch ein relativer Pfad angegeben werden. Wenn hierbei ein relativer Pfad angegeben wird, muss das Element `imageFolderPath` den `root` Pfad zu den Bildern enthalten.
 
-Mittels des Elements`moveFiles` kann gesteuert werden, ob die Bilder kopiert oder verschoben werden sollen.
+Mittels des Elements `moveFiles` kann gesteuert werden, ob die Bilder kopiert oder verschoben werden sollen.
 
 ```xml
 <!-- define which column contains the image folder name. Can be combined with <imageFolderPath> prefix or an absolute path.
@@ -243,7 +243,7 @@ Mittels des Elements`moveFiles` kann gesteuert werden, ob die Bilder kopiert ode
 
 
 ### Ausführung mittels GoobiScript
-Das Element `runAsGoobiScript` steuert, ob ein Import asynchron im Hintergrund über die GoobiScript Warteschlange abgearbeitet werden soll oder ob der Import direkt innerhalb der Nutzersession verarbeitet werden soll. Hier muss abgewägt werden, welche Einstellung sinnvoll ist. Soll ein ein Import inklusive Bildern erfolgen oder enthält die Excel-Datei sehr viele Datensätze, so ist es vermutlich sinnvoller, diesen Import als GoobiScript durchzuführen.
+Das Element `runAsGoobiScript` steuert, ob ein Import asynchron im Hintergrund über die GoobiScript Warteschlange abgearbeitet werden soll oder ob der Import direkt innerhalb der Nutzersession verarbeitet werden soll. Hier muss abgewägt werden, welche Einstellung sinnvoll ist. Soll ein Import inklusive Bildern erfolgen oder enthält die Excel-Datei sehr viele Datensätze, so ist es vermutlich sinnvoller, diesen Import als GoobiScript durchzuführen.
 
 ```xml
 <!-- Run the import as GoobiScript -->
