@@ -1172,7 +1172,6 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 for (String v : map.values()) {
                     if (v != null && !v.isEmpty()) {
                         Record r = new Record();
-//                        r.setId(map.get(headerOrder.get(idColumn)));
                         String catalogId = map.get(headerOrder.get(idColumn));
                         r.setId(StringUtils.isNotBlank(catalogId) ? catalogId + "_" + rowCounter : String.valueOf(rowCounter));
                         List<Map<?, ?>> list = new ArrayList<>();
