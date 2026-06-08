@@ -1,6 +1,7 @@
 package de.intranda.goobi.plugins.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,9 +10,9 @@ import java.util.Optional;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.tree.ConfigurationNode;
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class ExcelConfig {
@@ -54,9 +55,8 @@ public class ExcelConfig {
 
     private boolean splittingAllowed;
     private String splittingDelimiter;
-    
-    private Map<String, VolumeGenerator> volumeGenerators = new HashMap<>();
 
+    private Map<String, VolumeGenerator> volumeGenerators = new HashMap<>();
 
     /**
      * loads the &lt;config&gt; block from xml file
@@ -162,11 +162,11 @@ public class ExcelConfig {
             opacHeader = xmlConfig.getString("/opacHeader", "");
             searchField = xmlConfig.getString("/searchField", "12");
         }
-        
+
         List<HierarchicalConfiguration> volGenList = xmlConfig.configurationsAt("/volumeGeneration");
         for (HierarchicalConfiguration volGenConfig : volGenList) {
             String anchorType = volGenConfig.getString("@type", null);
-            if(StringUtils.isNotBlank(anchorType)) {
+            if (StringUtils.isNotBlank(anchorType)) {
                 String volumeType = volGenConfig.getString("./volumeType");
                 String mdGroupType = volGenConfig.getString("./metadataGroupType");
                 this.volumeGenerators.put(anchorType, new VolumeGenerator(volumeType, mdGroupType));
@@ -191,6 +191,15 @@ public class ExcelConfig {
         mmo.setDocType(docType);
         mmo.setSplittingAllowed(splitAllowed);
         mmo.setSearchField(md.getString("@opacSearchField", null));
+        mmo.setRequired(md.getBoolean("@required", false));
+        mmo.setPattern(md.getString("@pattern", null));
+        String validContentStr = md.getString("@validContent", null);
+        if (StringUtils.isNotBlank(validContentStr)) {
+            mmo.setValidContent(new ArrayList<>(Arrays.asList(validContentStr.split(";"))));
+        }
+        mmo.setListErrorMessage(md.getString("@listErrorMessage"));
+        mmo.setPatternErrorMessage(md.getString("@patternErrorMessage"));
+        mmo.setRequiredErrorMessage(md.getString("@requiredErrorMessage"));
         return mmo;
     }
 
