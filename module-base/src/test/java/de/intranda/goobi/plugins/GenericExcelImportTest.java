@@ -1,5 +1,8 @@
 package de.intranda.goobi.plugins;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,12 +32,9 @@ import ugh.exceptions.PreferencesException;
 import ugh.exceptions.ReadException;
 import ugh.fileformats.mets.MetsMods;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 public class GenericExcelImportTest {
 
-    //    @Test
+    @Test
     public void test() throws Exception {
         File importFile = new File("src/test/resources/9923254553502466.xlsx");
         File almaRecordFile = new File("src/test/resources/9923254553502466.alma.xml");
@@ -71,7 +71,7 @@ public class GenericExcelImportTest {
         List<Record> records = excelImport.generateRecordsFromFile();
 
         Assert.assertEquals(1, records.size());
-        Assert.assertEquals("9923254553502466", records.get(0).getId());
+        Assert.assertEquals("9923254553502466_2", records.get(0).getId());
 
         List<ImportObject> importFiles = excelImport.generateFiles(records);
         Assert.assertEquals(45, importFiles.size());
@@ -85,8 +85,6 @@ public class GenericExcelImportTest {
         mets.setDigitalDocument(marc.getDigitalDocument());
         return mets;
     }
-
-    // ---- Hilfsmethoden für Tests ----
 
     private GenericExcelImport buildPlugin() throws Exception {
         XMLConfiguration xmlConfig = new XMLConfiguration(new File("src/test/resources/plugin_intranda_import_excel.xml"));
@@ -106,23 +104,20 @@ public class GenericExcelImportTest {
         return r;
     }
 
-    // ---- Validierungstests ----
-
     @Test
     public void testValidateExcelData_missingColumn() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
         mmo.setHeaderName("Titel");
+        mmo.setRequired(true);
 
         Map<String, Integer> headerOrder = new HashMap<>();
-        // "Titel" fehlt absichtlich
 
         List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, new ArrayList<>());
-
         assertEquals(1, errors.size());
         assertTrue(errors.get(0).contains("Titel"));
-        assertTrue(errors.get(0).contains("nicht vorhanden"));
+        assertTrue(errors.get(0).contains("does not exist"));
     }
 
     @Test
@@ -142,11 +137,10 @@ public class GenericExcelImportTest {
         Record record = buildRecord(headerOrder, rowMap, 2);
 
         List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, List.of(record));
-
         assertEquals(1, errors.size());
-        assertTrue(errors.get(0).contains("Zeile 2"));
+        assertTrue(errors.get(0).contains("Row 2"));
         assertTrue(errors.get(0).contains("Titel"));
-        assertTrue(errors.get(0).contains("Pflichtfeld"));
+        assertTrue(errors.get(0).contains("empty"));
     }
 
     @Test
@@ -168,9 +162,9 @@ public class GenericExcelImportTest {
         List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, List.of(record));
 
         assertEquals(1, errors.size());
-        assertTrue(errors.get(0).contains("Zeile 3"));
+        assertTrue(errors.get(0).contains("Row 3"));
         assertTrue(errors.get(0).contains("Signatur"));
-        assertTrue(errors.get(0).contains("abc"));
+        assertTrue(errors.get(0).contains("The value 'abc' does not match the expected format"));
     }
 
     @Test
@@ -190,9 +184,8 @@ public class GenericExcelImportTest {
         Record record = buildRecord(headerOrder, rowMap, 4);
 
         List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, List.of(record));
-
         assertEquals(1, errors.size());
-        assertTrue(errors.get(0).contains("Zeile 4"));
+        assertTrue(errors.get(0).contains("Row 4"));
         assertTrue(errors.get(0).contains("Sprache"));
         assertTrue(errors.get(0).contains("it"));
     }
@@ -238,13 +231,13 @@ public class GenericExcelImportTest {
         headerOrder.put("Sprache", 0);
 
         Map<Integer, String> rowMap = new HashMap<>();
-        rowMap.put(0, "");  // leer, aber nicht required
+        rowMap.put(0, ""); // empty, but not required
 
         Record record = buildRecord(headerOrder, rowMap, 2);
 
         List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, List.of(record));
 
-        assertTrue("Leerer Wert ohne required darf keinen Fehler erzeugen", errors.isEmpty());
+        assertTrue(errors.isEmpty());
     }
 
 }
