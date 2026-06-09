@@ -266,22 +266,55 @@ The element `runAsGoobiScript` controls whether an import should be processed as
 The fields `metadata`, `person` and `group` can be used to import individual columns as metadata or as process properties. Each field contains a number of attributes and sub-elements.
 
 ### Import metadata
-The `metadata` element is used to generate descriptive metadata..
+The `metadata` element is used to generate descriptive metadata.
 
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `headerName` | Attribut | Column header in the Excel file |
-| `ugh` | Attribut | Name of the metadata |
-| `property` | Attribut | Name of the property |
-| `docType` | Attribut | `anchor` or `child` |
-| `normdataHeaderName` | Attribut | Column header of a column with associated identifiers |
-| `opacSearchField` | Attribut | Definition of which search field should be used for the catalogue query. This is necessary for the use of the JSON-Opac-Plugin. |
+| `headerName` | Attribute | Column header in the Excel file |
+| `ugh` | Attribute | Name of the metadata |
+| `property` | Attribute | Name of the property |
+| `docType` | Attribute | `anchor` or `child` |
+| `normdataHeaderName` | Attribute | Column header of a column with associated identifiers |
+| `opacSearchField` | Attribute | Definition of which search field should be used for the catalogue query. This is necessary for the use of the JSON-Opac-Plugin. |
+| `required` | Attribute | If `true`, the column must exist in the Excel file and the cell value must not be empty. Default is `false`. |
+| `requiredErrorMessage` | Attribute | Custom error message displayed when a required field is empty. |
+| `pattern` | Attribute | Regular expression that the cell value must match (only checked for non-empty cells). |
+| `patternErrorMessage` | Attribute | Custom error message displayed when the value does not match the pattern. |
+| `validContent` | Attribute | Semicolon-separated list of allowed values. The cell value must be one of these values (only checked for non-empty cells). |
+| `listErrorMessage` | Attribute | Custom error message displayed when the value is not contained in the list of allowed values. |
 
 The `headerName` attribute contains the column header. The rule only applies if the Excel file contains a column with this title and the cell is not empty. At least one of the two attributes `ugh` and `name` must exist. The `ugh` field can contain the name of a metadata. If this is the case (and the metadata is allowed for the configured publication type), a new metadata is created. `name` creates a property with this name.
 
 The `docType` attribute becomes relevant if a multi-volume work or journal has been imported from the catalog. This can be used to control whether the field should belong to the entire recording or to the volume.
 
 If, in addition to the content, there is another column with standard data identifiers or URIs, this column can be added to the `normdataHeaderName` attribute.
+
+
+### Validation of Excel data
+The plugin validates the entire Excel file before any processes are created. If validation fails, the import is aborted completely and all errors are displayed to the user. No processes are created.
+
+Validation proceeds in two steps:
+
+1. **Column check:** For all fields marked as `required="true"`, the plugin checks whether the corresponding column exists in the Excel file. If a required column is missing, the import is aborted immediately.
+2. **Row check:** For each data row, the plugin checks whether required fields are filled, whether values match a configured regular expression, and whether values are contained in a list of allowed values.
+
+Error messages can either be customised individually via the `*ErrorMessage` attributes or are output as generic system messages including the row number.
+
+Example configuration with validation attributes:
+
+```xml
+<!-- Required field: column must exist and must not be empty -->
+<metadata ugh="CatalogIDDigital" headerName="PPN-O" required="true" />
+
+<!-- Required field with custom error message -->
+<metadata ugh="TitleDocMain" headerName="2-Titel" required="true" requiredErrorMessage="Title is a required field"/>
+
+<!-- Pattern validation: only four-digit years or year ranges allowed -->
+<metadata ugh="PublicationYear" headerName="Year" pattern="(^\d{4}$|^\d{4}/\d{4}$)" patternErrorMessage="Invalid date format. Allowed: YYYY or YYYY/YYYY."/>
+
+<!-- Value list: only specific language codes allowed -->
+<metadata ugh="DocLanguage" headerName="10-DocLanguage" split="true" validContent="ger;eng;fre" listErrorMessage="Content is not included in the list of valid options"/>
+```
 
 
 ### Import of persons

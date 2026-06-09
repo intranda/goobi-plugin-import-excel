@@ -267,12 +267,45 @@ Mit dem Element `metadata` werden deskriptive Metadaten erzeugt.
 | `docType` | Attribut | `anchor` oder `child` |
 | `normdataHeaderName` | Attribut | Spaltentitel einer Spalte mit dazugehörigen Identifiern |
 | `opacSearchField` | Attribut | Definition, welches Suchfeld für die Katalogabfrage verwendet werden soll. Dies ist für den Einsatz des JSON-Opac-Plugins notwendig. |
+| `required` | Attribut | Wenn `true`, muss die Spalte vorhanden und der Zellinhalt nicht leer sein. Standard ist `false`. |
+| `requiredErrorMessage` | Attribut | Hier kann die Standardfehlermeldung durch eine benutzerdefinierte Fehlermeldung ersetzt werden, die angezeigt wird, wenn ein Pflichtfeld leer ist. |
+| `pattern` | Attribut | Regulärer Ausdruck, dem der Zellinhalt entsprechen muss (nur bei nicht-leeren Zellen geprüft). |
+| `patternErrorMessage` | Attribut | Hier kann die Standardfehlermeldung durch eine benutzerdefinierte Fehlermeldung ersetzt werden, die angezeigt wird, wenn der Inhalt nicht dem Muster entspricht. |
+| `validContent` | Attribut | Semikolon-getrennte Liste erlaubter Werte. Der Zellinhalt muss einem dieser Werte entsprechen (nur bei nicht-leeren Zellen geprüft). |
+| `listErrorMessage` | Attribut | Hier kann die Standardfehlermeldung durch eine benutzerdefinierte Fehlermeldung ersetzt werden, die angezeigt wird, wenn der Inhalt nicht in der Liste erlaubter Werte enthalten ist. |
 
 Das Attribut `headerName` enthält den Spaltentitel. Die Regel greift nur dann, wenn die Excel-Datei eine Spalte mit diesem Titel enthält und die Zelle nicht leer ist. Von den beiden Attributen `ugh` und `name` muss mindestens eines existieren. Das Feld `ugh` kann den Namen eines Metadatums enthalten. Wenn dies der Fall ist (und das Metadatum für den konfigurierten Publikationstyp erlaubt ist), wird ein neues Metadatum erzeugt. Mittels `name` wird eine Eigenschaft mit diesem Namen erstellt.
 
 Das Attribut `docType` wird relevant, wenn aus dem Katalog ein mehrbändiges Werk oder eine Zeitschrift importiert wurde. Darüber kann gesteuert werden, ob das Feld zur Gesamtaufnahme oder zum Band gehören soll.
 
 Falls zusätzlich zum Inhalt noch eine weitere Spalte mit Normdatenidentifiern oder URIs existiert, kann diese Spalte im Attribut `normdataHeaderName` hinzugefügt werden.
+
+
+### Validierung der Excel-Daten
+Das Plugin validiert die gesamte Excel-Datei, bevor Vorgänge angelegt werden. Schlägt die Validierung fehl, wird der Import vollständig abgebrochen und alle Fehler werden dem Nutzer angezeigt. Es werden keine Vorgänge angelegt.
+
+Die Validierung prüft in zwei Schritten:
+
+1. **Spaltenprüfung:** Für alle als `required="true"` markierten Felder wird geprüft, ob die entsprechende Spalte in der Excel-Datei vorhanden ist. Fehlt eine Pflichtspalte, wird der Import sofort abgebrochen.
+2. **Zeilenprüfung:** Für jede Datenzeile wird geprüft, ob Pflichtfelder befüllt sind, ob Inhalte einem konfigurierten regulären Ausdruck entsprechen und ob Inhalte in einer Liste erlaubter Werte enthalten sind.
+
+Fehlermeldungen können entweder über die konfigurierten `*ErrorMessage`-Attribute individuell angepasst werden oder werden als generische Systemmeldung mit Zeilennummer ausgegeben.
+
+Beispielkonfiguration mit Validierungsattributen:
+
+```xml
+<!-- Pflichtfeld: Spalte muss vorhanden und befüllt sein -->
+<metadata ugh="CatalogIDDigital" headerName="PPN-O" required="true" />
+
+<!-- Pflichtfeld mit benutzerdefinierter Fehlermeldung -->
+<metadata ugh="TitleDocMain" headerName="2-Titel" required="true" requiredErrorMessage="Titel ist ein Pflichtfeld"/>
+
+<!-- Mustervalidierung: nur vierstellige Jahreszahlen oder Zeiträume erlaubt -->
+<metadata ugh="PublicationYear" headerName="Jahr" pattern="(^\d{4}$|^\d{4}/\d{4}$)" patternErrorMessage="Ungültiges Datumsformat. Erlaubt: JJJJ oder JJJJ/JJJJ."/>
+
+<!-- Werteliste: nur bestimmte Sprachkürzel erlaubt -->
+<metadata ugh="DocLanguage" headerName="10-DocLanguage" split="true" validContent="ger;eng;fre" listErrorMessage="Inhalt ist nicht in der Liste gültiger Optionen enthalten"/>
+```
 
 ### Import von Personen
 Mittels des Elements `person` können automatisiert Personen angelegt werden.
