@@ -64,10 +64,13 @@
             docType: define if the metadata should be added to the anchor or child element. Gets ignored, when the
             record is no multivolume. Default is 'child', valid values are 'child' and 'anchor' -->
         <metadata ugh="CatalogIDSource" headerName="PPN-A" />
-        <metadata ugh="CatalogIDDigital" headerName="PPN-O" />
-        <metadata ugh="TitleDocMain" headerName="2-Titel" />
+        <metadata ugh="CatalogIDDigital" headerName="PPN-O" required="true" />
+        <metadata ugh="TitleDocMain" headerName="2-Titel" required="true" requiredErrorMessage="Field is required"/>
         <metadata ugh="PlaceOfPublication" property="Ort" normdataHeaderName="4-GND-ORT" headerName="3-Ort" docType="anchor" />
-        <metadata ugh="DocLanguage" headerName="10-DocLanguage" split="true" />
+        <metadata ugh="DocLanguage" headerName="10-DocLanguage" split="true" validContent="ger;eng;fre" listErrorMessage="Content is not included in the list of valid options"/>
+        <metadata ugh="PulicationYear" headerName="Year" pattern="(^\d{4}$\|^\d{4}/\d{4}$\|^\d{4}-\d{2}/\d{4}-\d{2}$)" patternErrorMessage="Invalid date format. The date must be entered in the format YYYY or YYYY-MM-DD."/>
+
+
 
         <!-- a configuration for a person might look like this -->
         <person ugh="Author" normdataHeaderName="7-GND-Person" docType="child" >

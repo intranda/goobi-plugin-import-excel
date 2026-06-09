@@ -25,7 +25,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
@@ -1174,6 +1174,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         Record r = new Record();
                         String catalogId = map.get(headerOrder.get(idColumn));
                         r.setId(StringUtils.isNotBlank(catalogId) ? catalogId + "_" + rowCounter : String.valueOf(rowCounter));
+                        r.setData(String.valueOf(rowCounter));
                         List<Map<?, ?>> list = new ArrayList<>();
                         list.add(headerOrder);
                         list.add(map);
@@ -1186,8 +1187,78 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
             }
         } catch (Exception e) {
             log.error(e);
+            Helper.setFehlerMeldung(e);
+            return new ArrayList<>();
+        }
+        List<String> validationErrors = validateExcelData(getConfig().getMetadataList(), headerOrder, recordList);
+        if (!validationErrors.isEmpty()) {
+            for (String validationError : validationErrors) {
+                Helper.setFehlerMeldung(validationError);
+            }
+            return new ArrayList<>();
         }
         return recordList;
+    }
+
+    List<String> validateExcelData(List<MetadataMappingObject> metadataList, Map<String, Integer> headerOrder,
+            List<Record> records) {
+        List<String> errors = new ArrayList<>();
+
+        // Step 1: header check
+        for (MetadataMappingObject mmo : metadataList) {
+            if (mmo.getHeaderName() != null && !headerOrder.containsKey(mmo.getHeaderName()) && mmo.isRequired()) {
+                errors.add(Helper.getTranslation("plugin_import_excel_missingColumn", mmo.getHeaderName()));
+            }
+        }
+        if (!errors.isEmpty()) {
+            return errors;
+        }
+
+        // Step 2: row validation
+        for (Record record : records) {
+            String rawRowData = record.getData();
+            int rowNumber = (rawRowData != null) ? Integer.parseInt(rawRowData) : -1;
+            Map<Integer, String> rowMap = getRowMap(record);
+            for (MetadataMappingObject mmo : metadataList) {
+                if (mmo.getHeaderName() == null) {
+                    continue;
+                }
+                Integer colIndex = headerOrder.get(mmo.getHeaderName());
+                if (colIndex == null) {
+                    continue;
+                }
+                String value = rowMap.getOrDefault(colIndex, "");
+                if (mmo.isRequired() && value.isBlank()) {
+                    String errorText =
+                            StringUtils.isNotBlank(mmo.getRequiredErrorMessage()) ? "Line " + rowNumber + ": " + mmo.getRequiredErrorMessage()
+                                    : Helper.getTranslation("plugin_import_excel_requiredFieldError", "" + rowNumber, mmo.getHeaderName());
+                    errors.add(errorText);
+                }
+                if (mmo.getPattern() != null && !value.isBlank()) {
+                    try {
+                        if (!value.matches(mmo.getPattern())) {
+                            String errorText =
+                                    StringUtils.isNotBlank(mmo.getPatternErrorMessage()) ? "Line " + rowNumber + ": " + mmo.getPatternErrorMessage()
+                                            : Helper.getTranslation("plugin_import_excel_patternFieldError", "" + rowNumber, mmo.getHeaderName(),
+                                                    value);
+                            errors.add(errorText);
+                        }
+                    } catch (java.util.regex.PatternSyntaxException e) {
+                        log.error("Invalid pattern in configuration for column '{}': {}", mmo.getHeaderName(), mmo.getPattern());
+                    }
+                }
+                if (mmo.getValidContent() != null && !mmo.getValidContent().isEmpty() && !value.isBlank()
+                        && !mmo.getValidContent().contains(value)) {
+                    String errorText =
+                            StringUtils.isNotBlank(mmo.getListErrorMessage()) ? "Line " + rowNumber + ": " + mmo.getListErrorMessage()
+                                    : Helper.getTranslation("plugin_import_excel_listFieldError", "" + rowNumber, mmo.getHeaderName(),
+                                            value, String.join("; ", mmo.getValidContent()));
+                    errors.add(errorText);
+                }
+            }
+        }
+
+        return errors;
     }
 
     public String getCellValue(Row row, int columnIndex) {

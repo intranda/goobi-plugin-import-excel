@@ -35,7 +35,8 @@
 		<!-- Overwrite any existing processes -->
 		<replaceExistingProcesses>false</replaceExistingProcesses>
 
-		<metadata ugh="CatalogIDDigital" headerName="Identifier" />
+		<metadata ugh="CatalogIDDigital" headerName="Identifier" required="true" pattern="\d+" />
+		<metadata ugh="DocLanguage" headerName="Sprache" validContent="de;en;fr" />
 
 	</config>
 
