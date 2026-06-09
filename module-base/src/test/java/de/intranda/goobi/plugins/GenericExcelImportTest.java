@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +21,7 @@ import org.goobi.production.importer.Record;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Mockito;
 
 import de.intranda.goobi.plugins.util.MetadataMappingObject;
@@ -33,6 +37,17 @@ import ugh.exceptions.ReadException;
 import ugh.fileformats.mets.MetsMods;
 
 public class GenericExcelImportTest {
+
+    @BeforeAll
+    public static void setUp() throws URISyntaxException {
+        String resourcesFolder = "src/test/resources/"; // for junit tests in eclipse
+
+        if (!Files.exists(Paths.get(resourcesFolder))) {
+            resourcesFolder = "target/test-classes/"; // to run mvn test from cli or in jenkins
+        }
+        String log4jFile = resourcesFolder + "log4j2.xml"; // for junit tests in eclipse
+        System.setProperty("log4j.configurationFile", log4jFile);
+    }
 
     @Test
     public void test() throws Exception {
