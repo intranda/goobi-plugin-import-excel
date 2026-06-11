@@ -185,7 +185,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 }
             } catch (Exception e1) {
                 throw new ImportObjectException("Could not import record " + identifier
-                        + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.");
+                        + ". Usually this means a ruleset mapping is not correct or the record can not be found in the catalogue.", e1);
             }
 
             try {
@@ -212,6 +212,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         try {
             ats = myImportOpac.getAtstsl();
         } catch (Exception e) {
+            log.warn("Could not retrieve ATS from OPAC plugin: {}", e.getMessage());
             ats = "";
         }
 
@@ -484,8 +485,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                 logical.addMetadataGroup(group);
             }
         } catch (MetadataTypeNotAllowedException e) {
-            log.info(e);
-            // Metadata is not known or not allowed
+            log.debug("Metadata type not allowed, skipping: {}", e.getMessage());
         }
     }
 
@@ -552,6 +552,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     public Map<Integer, String> getRowMap(Record rec) {
         Object tempObject = rec.getObject();
         List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
+        if (list == null || list.size() < 2) {
+            throw new IllegalArgumentException("Record object must be a List with at least 2 entries (headerOrder, rowMap), got: "
+                    + (list == null ? "null" : list.size()));
+        }
         return (Map<Integer, String>) list.get(1);
     }
 
@@ -559,6 +563,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
     public Map<String, Integer> getHeaderOrder(Record rec) {
         Object tempObject = rec.getObject();
         List<Map<?, ?>> list = (List<Map<?, ?>>) tempObject;
+        if (list == null || list.isEmpty()) {
+            throw new IllegalArgumentException("Record object must be a List with at least 2 entries (headerOrder, rowMap), got: "
+                    + (list == null ? "null" : list.size()));
+        }
         return (Map<String, Integer>) list.get(0);
     }
 
@@ -621,8 +629,7 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     value = addMetadata(value, identifier, mmo, logical, anchor);
                 }
             } catch (MetadataTypeNotAllowedException e) {
-                log.info(e);
-                // Metadata is not known or not allowed
+                log.debug("Metadata type not allowed, skipping: {}", e.getMessage());
             }
             // create a default title
             if (CATALOGIDDIGITAL.equalsIgnoreCase(mmo.getRulesetName()) && !"anchor".equals(mmo.getDocType())) {
@@ -793,9 +800,8 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                             }
                         }
                     }
-                } catch (Exception e) {
-                    log.info(e);
-                    // Metadata is not known or not allowed
+                } catch (MetadataTypeNotAllowedException e) {
+                    log.debug("Metadata type not allowed, skipping: {}", e.getMessage());
                 }
             }
         }
@@ -868,7 +874,10 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         String[] lstNames = name.split(separator);
                         String[] lstIds = new String[lstNames.length];
                         if (pmo.getGndIds() != null && !pmo.getGndIds().isEmpty()) {
-                            lstIds = rowMap.get(headerOrder.get(pmo.getGndIds())).split(separator);
+                            String gndValue = rowMap.get(headerOrder.get(pmo.getGndIds()));
+                            if (gndValue != null) {
+                                lstIds = gndValue.split(separator);
+                            }
                         }
 
                         //roles for this list:
@@ -938,17 +947,19 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                         }
                     }
                 } catch (MetadataTypeNotAllowedException e) {
-                    log.info(e);
-                    // Metadata is not known or not allowed
+                    log.debug("Metadata type not allowed, skipping: {}", e.getMessage());
                 }
             }
         }
     }
 
-    private String[] getRoles(Map<String, Integer> headerOrder, Map<Integer, String> rowMap, int length) {
+    String[] getRoles(Map<String, Integer> headerOrder, Map<Integer, String> rowMap, int length) {
         String[] lstRoles = null;
         if (getConfig().getRoleField() != null) {
             String value = rowMap.get(headerOrder.get(getConfig().getRoleField()));
+            if (value == null) {
+                return null;
+            }
             //multiples ?
             String strSplitListChar = config.getListSplitChar();
             if (strSplitListChar != null && value.contains(strSplitListChar)) {
@@ -1217,7 +1228,14 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
         // Step 2: row validation
         for (Record record : records) {
             String rawRowData = record.getData();
-            int rowNumber = (rawRowData != null) ? Integer.parseInt(rawRowData) : -1;
+            int rowNumber = -1;
+            try {
+                if (rawRowData != null) {
+                    rowNumber = Integer.parseInt(rawRowData);
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse row number '{}', using -1", rawRowData);
+            }
             Map<Integer, String> rowMap = getRowMap(record);
             for (MetadataMappingObject mmo : metadataList) {
                 if (mmo.getHeaderName() == null) {

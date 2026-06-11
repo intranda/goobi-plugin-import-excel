@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Mockito;
 
+import de.intranda.goobi.plugins.util.ExcelConfig;
 import de.intranda.goobi.plugins.util.MetadataMappingObject;
 import de.intranda.ugh.extension.MarcFileformat;
 import de.sub.goobi.config.ConfigurationHelper;
@@ -50,7 +51,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void testFileImport() throws Exception {
         File importFile = new File("src/test/resources/9923254553502466.xlsx");
         File almaRecordFile = new File("src/test/resources/9923254553502466.alma.xml");
         File importFolder = new File("src/test/resources/output");
@@ -119,8 +120,105 @@ public class GenericExcelImportTest {
         return r;
     }
 
+    // --- getRoles() ---
+
     @Test
-    public void testValidateExcelData_missingColumn() throws Exception {
+    public void testGetRolesReturnsNullWhenValueMissing() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+        ExcelConfig config = new ExcelConfig(null);
+        config.setRoleField("Rolle");
+        config.setListSplitChar(";");
+        plugin.setConfig(config);
+
+        Map<String, Integer> headerOrder = new HashMap<>();
+        headerOrder.put("Rolle", 0);
+        // rowMap has no entry for index 0 → rowMap.get(0) returns null
+        Map<Integer, String> rowMap = new HashMap<>();
+
+        String[] result = plugin.getRoles(headerOrder, rowMap, 1);
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void testGetRolesSplitsMultipleRoles() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+        ExcelConfig config = new ExcelConfig(null);
+        config.setRoleField("Rolle");
+        config.setListSplitChar(";");
+        plugin.setConfig(config);
+
+        Map<String, Integer> headerOrder = new HashMap<>();
+        headerOrder.put("Rolle", 0);
+        Map<Integer, String> rowMap = new HashMap<>();
+        rowMap.put(0, "Autor;Hrsg");
+
+        String[] result = plugin.getRoles(headerOrder, rowMap, 2);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(2, result.length);
+        Assert.assertEquals("Autor", result[0]);
+        Assert.assertEquals("Hrsg", result[1]);
+    }
+
+    @Test
+    public void testGetRolesReturnsNullWhenHeaderMissing() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+        ExcelConfig config = new ExcelConfig(null);
+        config.setRoleField("Rolle");
+        plugin.setConfig(config);
+
+        // "Rolle" header not in headerOrder at all
+        Map<String, Integer> headerOrder = new HashMap<>();
+        Map<Integer, String> rowMap = new HashMap<>();
+
+        String[] result = plugin.getRoles(headerOrder, rowMap, 1);
+        Assert.assertNull(result);
+    }
+
+    // --- getRowMap() / getHeaderOrder() ---
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetRowMapThrowsOnMalformedRecord() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+        Record r = new Record();
+        List<Map<?, ?>> list = new ArrayList<>();
+        list.add(new HashMap<>()); // only 1 element instead of 2
+        r.setObject(list);
+        plugin.getRowMap(r);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetHeaderOrderThrowsOnMalformedRecord() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+        Record r = new Record();
+        r.setObject(new ArrayList<>()); // empty list
+        plugin.getHeaderOrder(r);
+    }
+
+    // --- validateExcelData() NumberFormatException ---
+
+    @Test
+    public void testValidateExcelDataNonIntegerRowDataUsesMinusOne() throws Exception {
+        GenericExcelImport plugin = buildPlugin();
+
+        MetadataMappingObject mmo = new MetadataMappingObject();
+        mmo.setHeaderName("Titel");
+        mmo.setRequired(true);
+
+        Map<String, Integer> headerOrder = new HashMap<>();
+        headerOrder.put("Titel", 0);
+
+        Map<Integer, String> rowMap = new HashMap<>();
+        rowMap.put(0, "");
+
+        Record record = buildRecord(headerOrder, rowMap, 2);
+        record.setData("not-a-number"); // override with invalid integer
+
+        List<String> errors = plugin.validateExcelData(List.of(mmo), headerOrder, List.of(record));
+        assertEquals(1, errors.size()); // error reported, no exception thrown
+    }
+
+    @Test
+    public void testValidateExcelDataMissingColumn() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
@@ -136,7 +234,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void testValidateExcelData_requiredFieldEmpty() throws Exception {
+    public void testValidateExcelDataRequiredFieldEmpty() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
@@ -159,7 +257,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void testValidateExcelData_patternMismatch() throws Exception {
+    public void testValidateExcelDataPatternMismatch() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
@@ -183,7 +281,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void testValidateExcelData_invalidContent() throws Exception {
+    public void testValidateExcelDataInvalidContent() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
@@ -206,7 +304,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void testValidateExcelData_noErrorsForValidData() throws Exception {
+    public void testValidateExcelDataNoErrorsForValidData() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo1 = new MetadataMappingObject();
@@ -233,7 +331,7 @@ public class GenericExcelImportTest {
     }
 
     @Test
-    public void testValidateExcelData_emptyValueSkipsPatternAndContent() throws Exception {
+    public void testValidateExcelDataEmptyValueSkipsPatternAndContent() throws Exception {
         GenericExcelImport plugin = buildPlugin();
 
         MetadataMappingObject mmo = new MetadataMappingObject();
