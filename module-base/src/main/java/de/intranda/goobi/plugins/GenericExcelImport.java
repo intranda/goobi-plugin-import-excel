@@ -331,17 +331,18 @@ public class GenericExcelImport implements IImportPluginVersion2, IPlugin {
                     writeFiles(headerOrder, rowMap, io.getMetsFilename(), io.getProcessTitle());
 
                     // check if the process exists
+                    boolean dataReplaced = false;
                     if (replaceExisting) {
-                        boolean dataReplaced = replaceExistingProcess(rec, ff, io);
-                        if (dataReplaced) {
-                            answer.remove(io);
-                        }
+                        dataReplaced = replaceExistingProcess(rec, ff, io);
                     }
 
                     if (anchor != null) {
                         anchor.removeChild(logical);
                     }
-                    answer.add(io);
+                    // the data was written into an already existing process, so don't let goobi create a new one for it
+                    if (!dataReplaced) {
+                        answer.add(io);
+                    }
                 }
 
             } catch (ImportObjectException e) {
